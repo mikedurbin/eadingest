@@ -1,0 +1,22 @@
+# Maven produce #
+#################
+target/
+
+
+# Eclipse output #
+##################
+bin
+\.project
+\.settings
+\.classpath
+
+# Emacs output #
+################
+*~
+
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
