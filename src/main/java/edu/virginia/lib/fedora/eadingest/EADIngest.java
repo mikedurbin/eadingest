@@ -3,7 +3,6 @@ package edu.virginia.lib.fedora.eadingest;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -70,20 +69,23 @@ public class EADIngest {
     
     public static void main(String args[]) throws Exception {
         Properties p = new Properties();
-        p.load(EADIngest.class.getClassLoader().getResourceAsStream("fedora-test.properties"));
+        p.load(EADIngest.class.getClassLoader().getResourceAsStream("config/fedora-test.properties"));
         FedoraClient fc = new FedoraClient(new FedoraCredentials(p.getProperty("fedora-url"), p.getProperty("fedora-username"), p.getProperty("fedora-password")));
 
         Properties catalogP = new Properties();
-        p.load(EADIngest.class.getClassLoader().getResourceAsStream("virgo.properties"));
-
+        catalogP.load(EADIngest.class.getClassLoader().getResourceAsStream("config/virgo.properties"));
+        
+        // Papers of John Dos Passos
+        File eadFile = new File("data/viu01215.xml");
+        String[] eadId = new String[] { "u3523359" };
         
         // Papers of Dr James Carmichael
-        File eadFile = new File("data/viu01265.xml");
-        String[] eadId = new String[] { "u2762707" };
+        //File eadFile = new File("data/viu01265.xml");
+        //String[] eadId = new String[] { "u2762707" };
         
         // Church
         //File eadFile = new File("data/viu00003.xml");
-        //String[] eadId = new String[] { "u2525293" };
+        //String[] eadId = new String[] { "u2525293", "u4327007", "u4293731" };
         
         // Holsinger
         //File eadFile = new File("data/viu02465.xml");
@@ -92,7 +94,6 @@ public class EADIngest {
         // Walter Reed Yellow Fever
         //File eadFile = new File("data/viuh00010.xml");
         //String[] eadId = new String[] { "u3653257" };
-        
         
         EADIngest i = new EADIngest(eadFile, eadId, catalogP.getProperty("catalog-url"));
         try {
@@ -180,15 +181,13 @@ public class EADIngest {
             
         
         // default transformers
-        File xslt = new File("strip-hierarchy.xsl");
         TransformerFactory tFactory = TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl",null);
-        Templates template = tFactory.newTemplates(new StreamSource(new FileInputStream(xslt)));
+        Templates template = tFactory.newTemplates(new StreamSource(EADIngest.class.getClassLoader().getResourceAsStream("strip-hierarchy.xsl")));
         Transformer t = template.newTransformer();
         collectionTransform = t;
         cTransform = t;
         
-        xslt = new File("convert-holding.xsl");
-        template = tFactory.newTemplates(new StreamSource(new FileInputStream(xslt)));
+        template = tFactory.newTemplates(new StreamSource(EADIngest.class.getClassLoader().getResourceAsStream("convert-holding.xsl")));
         holdingTransform = template.newTransformer();
         
     }

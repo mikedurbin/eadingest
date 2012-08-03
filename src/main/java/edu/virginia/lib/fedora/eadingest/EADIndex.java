@@ -16,7 +16,7 @@ public class EADIndex {
 
     public static void main(String[] args) throws Exception {
         Properties p = new Properties();
-        p.load(EADIndex.class.getClassLoader().getResourceAsStream("fedora-test.properties"));
+        p.load(EADIndex.class.getClassLoader().getResourceAsStream("config/fedora-test.properties"));
         FedoraClient fc = new FedoraClient(new FedoraCredentials(p.getProperty("fedora-url"), p.getProperty("fedora-username"), p.getProperty("fedora-password")));
 
         // find all collections

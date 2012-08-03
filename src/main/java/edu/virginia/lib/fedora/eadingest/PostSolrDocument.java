@@ -27,7 +27,7 @@ public class PostSolrDocument {
         writeStreamToStream(FedoraClient.getDissemination(pid, "sdef:ead-node", "getIndexingMetadata").execute(fc).getEntityInputStream(), baos);
         
         Properties p = new Properties();
-        p.load(PostSolrDocument.class.getClassLoader().getResourceAsStream("solr.properties"));
+        p.load(PostSolrDocument.class.getClassLoader().getResourceAsStream("config/solr.properties"));
         
         String updateUrl = p.getProperty("solr-update-url");
         
