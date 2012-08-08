@@ -1,0 +1,768 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<foxml:digitalObject VERSION="1.1" PID="sdep:documented-mapping" xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+<foxml:objectProperties>
+<foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+<foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="A saxon-servlet based service deployment object for documented XSLT mappings."/>
+</foxml:objectProperties>
+<foxml:datastream ID="DC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="DC1.0" LABEL="Dublin Core Record for this object" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/">
+<foxml:xmlContent>
+<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+  <dc:title>A saxon-servlet based service deployment object for documented XSLT mappings.</dc:title>
+  <dc:identifier>sdep:documented-mapping</dc:identifier>
+</oai_dc:dc>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="RELS-EXT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="RELS-EXT.0" LABEL="" MIMETYPE="application/rdf+xml">
+<foxml:xmlContent>
+<rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="info:fedora/sdep:documented-mapping">
+    <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ServiceDeployment-3.0"/>
+    <fedora-model:isDeploymentOf rdf:resource="info:fedora/sdef:documented-mapping"/>
+    <fedora-model:isContractorOf rdf:resource="info:fedora/cmodel:documented-mapping"/>
+  </rdf:Description>
+</rdf:RDF>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="METHODMAP" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="METHODMAP.0" LABEL="" MIMETYPE="text/xml">
+<foxml:xmlContent>
+<fmm:MethodMap xmlns:fmm="http://fedora.comm.nsdlib.org/service/methodmap" name="collectionInfo">
+  <fmm:method operationName="getMappingDocumentation" wsdlMsgName="getMappingDocumentationRequest" wsdlMsgOutput="response">
+    <fmm:DatastreamInputParm parmName="XSLT" passBy="URL_REF" required="TRUE"/>
+    <fmm:MethodReturnType wsdlMsgName="response" wsdlMsgTOMIME="text/html"/>
+  </fmm:method>
+</fmm:MethodMap>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="DSINPUTSPEC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="DSINPUTSPEC.0" LABEL="" MIMETYPE="text/xml">
+<foxml:xmlContent>
+<fbs:DSInputSpec xmlns:fbs="http://fedora.comm.nsdlib.org/service/bindspec" label="collectionInfo">
+  <fbs:DSInput DSMax="1" DSMin="1" DSOrdinality="false" wsdlMsgPartName="XSLT">
+    <fbs:DSInputLabel>transformation</fbs:DSInputLabel>
+    <fbs:DSMIME>text/xml</fbs:DSMIME>
+    <fbs:DSInputInstruction>N/A</fbs:DSInputInstruction>
+  </fbs:DSInput>
+</fbs:DSInputSpec>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="WSDL" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="WSDL.0" LABEL="" MIMETYPE="text/xml">
+<foxml:xmlContent>
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap" xmlns:soapenc="http://schemas.xmlsoap.org/wsdl/soap/encoding" xmlns:this="sdep" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="publishedCollectionInfo" targetNamespace="sdep">
+  <wsdl:types>
+    <xsd:schema targetNamespace="sdep">
+      <xsd:simpleType name="inputType">
+        <xsd:restriction base="xsd:string"/>
+      </xsd:simpleType>
+      <xsd:simpleType name="pidType">
+        <xsd:restriction base="xsd:string"/>
+      </xsd:simpleType>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="getMappingDocumentationRequest">
+    <wsdl:part name="pid" type="this:pidType"/>
+    <wsdl:part name="XSLT" type="this:inputType"/>
+  </wsdl:message>
+  <wsdl:message name="response">
+    <wsdl:part name="dissem" type="xsd:base64Binary"/>
+  </wsdl:message>
+  <wsdl:portType name="portType">
+    <wsdl:operation name="getMappingDocumentation">
+      <wsdl:input message="this:getMappingDocumentationRequest"/>
+      <wsdl:output message="this:response"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:service name="local-service">
+    <wsdl:port binding="this:binding" name="port">
+      <http:address location="LOCAL"/>
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:binding name="binding" type="this:portType">
+    <http:binding verb="GET"/>
+    <wsdl:operation name="getMappingDocumentation">
+      <http:operation location="http://local.fedora.server/saxon/SaxonServlet?source=(XSLT)&amp;style=http://local.fedora.server/fedora/get/sdep:documented-mapping/to-user-docs.xsl&amp;clear-stylesheet-cache=no"/>
+      <wsdl:input>
+        <http:urlReplacement/>
+      </wsdl:input>
+      <wsdl:output>
+        <mime:content type="text/xml"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+</wsdl:definitions>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="to-user-docs.xsl" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="to-user-docs.xsl.0" LABEL="" MIMETYPE="text/xml">
+<foxml:xmlContent>
+<xsl:stylesheet xmlns:doc="http://www.oxygenxml.com/ns/doc/xsl" xmlns:mapping="http://lib.virginia.edu/mapping" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+  
+  <xsl:variable name="fieldUsageMap" select="document('http://localhost:8080/fedora/objects/documented-mapping:sdep/datastreams/solr-field-purpose.xml/content')/fields"/>
+  <xsl:template match="/">
+    <html>
+      <head>
+        <title>Current Mapping  </title>
+        <style type="text/css">
+                    table {
+                      font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+                      border-collapse:collapse;
+                    }
+                    td { 
+                      border:1px solid #000;
+                      padding:.25em;
+                      vertical-align:top;
+                      text-align:left;
+                    }
+                   th {
+                     padding:.25em;
+                     border:1px solid #000;
+                     font-size:1.2em;
+                     text-align:left;
+                     background-color:#100050;
+                     color:#fff;
+                   }
+                </style>
+      </head>
+      <body>
+        <p>
+                    The mapping from fields in the source records to fields in the SOLR document that 
+                    serves as the source of data for Virgo is documented below.  Each line can be read
+                    as a single rule or mapping from a piece of metadata in the source to a field that
+                    may serve as a facet, presented value or simple searchable text in the catalog.  
+                </p>
+        <p>
+                    Because of the commonalities between different sets of indexed materials, many 
+                    of these mappings are "default" or inherited.  The mappings are listed in order
+                    of precedence.  Higher listed rules will overrule lower listed rules.
+                </p>
+        <table>
+          <tr>
+            <th>solr field</th>
+            <th>field purpose</th>
+            <th>source MODS xpath</th>
+            <th>normalization routine</th>
+          </tr>
+          <xsl:apply-templates mode="table-rows" select="xsl:stylesheet/doc:doc"/>
+          <xsl:for-each select="xsl:stylesheet/xsl:import">
+            <xsl:variable name="import" select="document(@href)"/>
+            <xsl:apply-templates mode="table-rows" select="$import/xsl:stylesheet/doc:doc"/>
+          </xsl:for-each>
+        </table>
+      </body>
+    </html>
+  </xsl:template>
+  <xsl:template match="doc:doc" mode="table-rows">
+    <xsl:variable name="nextMatch" select="following-sibling::xsl:template/@match"/>
+    <xsl:for-each select=".//*[@mapping:type='solrField']">
+      <tr>
+        <td>
+          <xsl:value-of select="text()"/>
+        </td>
+        <xsl:variable name="usage" select="$fieldUsageMap/field[name/text() = current()]/usage"/>
+        <xsl:if test="$usage">
+          <td>
+            <xsl:value-of select="$usage"/>
+          </td>
+        </xsl:if>
+        <xsl:if test="not($usage)">
+          <td>
+            <em>
+              <xsl:text>undocumented</xsl:text>
+            </em>
+          </td>
+        </xsl:if>
+        <xsl:if test="@mapping:sourceXPath">
+          <td>
+            <xsl:value-of select="@mapping:sourceXPath"/>
+          </td>
+        </xsl:if>
+        <xsl:if test="not(@mapping:sourceXPath)">
+          <td>
+            <xsl:value-of select="$nextMatch"/>
+          </td>
+        </xsl:if>
+        <td>
+          <xsl:value-of select="@mapping:normalization"/>
+        </td>
+      </tr>
+    </xsl:for-each>
+  </xsl:template>
+</xsl:stylesheet>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="solr-field-purpose.xml" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="solr-field-purpose.xml.0" LABEL="" MIMETYPE="text/xml">
+<foxml:xmlContent>
+<fields>
+  
+  <field>
+    <name>id</name>
+    <required>true</required>
+    <usage>Every solr document must define exactly one id field.  The id value must not only be unique across a given collection, it must be unique within the entire Solr index.  Attempting to add a document that has the same id as an already existing Solr document will cause that Solr document to be replaced.  Note that the items in the Solr index from the Old Virgo ILS system have id values consisting of the letter ‘u’ followed by a number, so for material from other sources, the id must not be of that pattern.</usage>
+  </field>
+  <field>
+    <name>content_model_facet</name>
+    <usage>TBD - but very important.</usage>
+  </field>
+  <field>
+    <name>author_text</name>
+    <usage>This field is used for author searching.  Multiple entries allowed.  Each author_text entry consists of the name of one of the “authors” of the item being indexed (or more broadly “creator” of the item.)   If, for instance, you have both the native script version of an author’s name as well as an English transliteration of the author’s name, include both versions of the name in separate author_text fields.  If the item cannot be properly be said to have an author or creator (perhaps it is unknown) this item can be omitted.</usage>
+  </field>
+  <field>
+    <name>author_added_entry_text</name>
+    <usage>This optional field is used for author searching. Multiple entries allowed.  An additional field that can be used to list “authors” of an item, names listed in this field are not “weighted” as heavily in the search results as authors listed in an author_text field entry.</usage>
+  </field>
+  <field>
+    <name>subject_text</name>
+    <usage>Multiple entries allowed.  Each subject_text entry consists of a descriptive subject heading about the given item.  When doing a “subject” search terms and phrases that appear in a subject_text field, will be weighted much more heavily than words and phrases that appear in all other text fields.</usage>
+  </field>
+  <field>
+    <name>title_text</name>
+    <usage>Multiple entries allowed, although in practice there should be no more than two.  This field should contain the main title of the item being indexed.  Additionally if there is a native script version of the item’s title in addition to an English transliteration of the title, include both versions of the name in separate title_text fields.</usage>
+  </field>
+  <field>
+    <name>subtitle_text</name>
+    <usage>Optional. Multiple entries allowed, although in practice there should be no more than two.  This field should contain the sub-title (if any) of the item being indexed. Similar to the title_text field, include native script version of the subtitle in a separate subtitle_text field.</usage>
+  </field>
+  <field>
+    <name>full_title_text</name>
+    <usage>This entry should consist of the main title and the subtitle concatenated together.  It is used to boost exact title matches higher than matches that with only a part of the title.</usage>
+  </field>
+  <field>
+    <name>alternate_form_title_text</name>
+    <usage>Optional. Multiple entries allowed.  Additional related titles for the item.  Possibly alternate titles for an item, or titles of a contained part (song titles from an album).</usage>
+  </field>
+  <field>
+    <name>journal_title_text</name>
+    <usage>This field should contain the full title of the item being indexed, but it should only be populated if the item in question should be considered to be a journal or a magazine.</usage>
+  </field>
+  <field>
+    <name>call_number_text</name>
+    <usage>Multiple entries allowed.  This field should contain a separate entry for each individual “call number” assigned to an item.  Ideally this would be a LC type call number, but any arbitrary numbering scheme can be used.</usage>
+  </field>
+  
+  <field>
+    <name>title_display</name>
+    <name>subtitle_display</name>
+    <name>main_title_display</name>
+    <name>series_title_display</name>
+    <name>part_display</name>
+    <name>author_display</name>
+    <name>creator_display</name>
+    <name>date_display</name>
+    <name>date_received_facet</name>
+    <name>media_resource_id_display</name>
+    <name>media_descirption_display</name>
+    <name>digital_collection_facet</name>
+    <name>datafile_name_display</name>
+    <name>location_facet</name>
+    <name>call_number_display</name>
+    <name>isbn_display</name>
+    <name>published_display</name>
+    <name>mint_display</name>
+    <name>accession_display</name>
+    <name>thumb_obv_display</name>
+    <name>thumb_rev_display</name>
+    <name>year_facet</name>
+    <name>year_display</name>
+    <name>published_date_display</name>
+    <name>linked_author_display</name>
+    <name>linked_title_display</name>
+    <name>linked_resposibility_statement_display</name>
+    <name>url_display</name>
+    <name>repository_address_display</name>
+    <usage>included (in some cases, depending on content_model_facet) in the search results display</usage>
+  </field>
+  
+  <field>
+    <name>year_multisort_i</name>
+    <usage> This index entry indicates the year of “publication” of the item. There can be only one value for this entry, because it is used for sorting, and it must consist of exactly 4 digits (preceded by an optional minus sign for B.C. dates).  This means that if you have a range of dates, you must pick one to use.  If you have an uncertain date (e.g. 197u) you must decide what value to use, or you must leave this index entry undefined.</usage>
+  </field>
+  <field>
+    <name>title_sort_facet</name>
+    <usage>There can be only one value for this entry.  This should consist of the full title of the item, including any subtitle.  Then all punctuation should be removed from the title, any short, unimportant words at the beginning of the title (like “the” or “a” or “le”) should be stripped off, and lastly, the remaining letters should be converted to lowercase.</usage>
+  </field>
+  <field>
+    <name>author_sort_facet</name>
+    <usage>There can be only one value for this entry.  This should consist of the main “author” or “creator” of the item, in the order lastname firstname (as shown below)  As with the title_sort_facet field, any punctuation should be stripped and the entire remaining letters should be converted to lowercase.</usage>
+  </field>
+  <field>
+    <name>date_received_facet</name>
+    <usage> There can be only one value for this entry.  This index entry is probably only relevant for items from the library catalog.  Its value corresponds to the date the item was received by the library.  Its format must be an 8 digit date of the following format:  YYYYMMDD</usage>
+  </field>
+  <field>
+    <name>call_number_sort_facet</name>
+    <usage>There can be only one value for this entry.  This index entry is primarily used for sorting by the LC call number assigned to an object.  Because the defined sort order for LC call numbers is idiosyncratic and complicated the value place here must be normalized to a complex and confusing form.  For instance the LC call number HQ734.H366 would need to be normalized to be: HQ  0734.000000 H0.366000  good luck with that.</usage>
+  </field>
+  <field>
+    <name>source_facet</name>
+    <required>true</required>
+    <usage>Required. For each set of different data loaded into the solr index. This field denotes (in some descriptive way) the source of that data.  All items from a given source should have the same value for this field.  Items from the library catalog have the value “Library Catalog”</usage>
+  </field>
+  <field>
+    <name>digital_collection_facet</name>
+    <usage>Optional. Denotes a sub-category within the source_facet for subdividing items into separate catagories.</usage>
+  </field>
+  <field>
+    <name>format_facet</name>
+    <required>true</required>
+    <usage>Denotes the form of the item being indexed.  Multiple entries allowed.  If something is a DVD, it should get format_facet entries of “DVD” and “Video”.  Note the entry “Includes Video” indicates something that primarily is another form, ie. a book, but which also includes a video as supplemental material.  Please see the list of supported values.</usage>  
+  
+    <legalValues>
+      <value>Archives</value>
+      <value>Audio CD</value>
+      <value>Book</value>
+            Broadside
+            Cassette
+            Coin
+            Cylinder
+            DVD
+            Equipment
+            Government Document
+            Includes Video
+            Journal/Magazine
+            LP
+            Laser Disc
+            Manuscript
+            Map
+            Microform
+            Musical Recording
+            Musical Score
+            Newspaper
+            Non-musical Recording
+            Online
+            Open Reel Tape
+            Pamphlet
+            Photographs
+            Poster
+            Slide
+            Software/Multimedia
+            Streaming Video
+            Technical report
+            Thesis/Dissertation
+            U-matic
+            Unknown
+            VHS
+            Video
+            eBook
+        </legalValues>
+  </field>
+  <field>
+    <name>author_facet</name>
+    <usage>Multiple entries allowed. This should list all of the “authors” of an item.   They should be formatted in a last-name-first order and in the examples below, and if there is a standard form for that persons name to make it less ambiguous, you should try to use that form.</usage>
+  </field>
+  <field>
+    <name>published_date_facet</name>
+    <usage>This field attempts to provide a textual description of the date of publication of an item.  Once date range searching is implemented, this entry may no longer be needed.  The only values that should be put in this field are as follows: (However you should use all that apply.)</usage>
+    <legalValues>
+      <value>This year</value>
+      <value>Last 3 years</value>
+      <value>Last 10 years</value>
+      <value>Last 50 years</value>
+      <value>More than 50 years ago</value>
+    </legalValues>
+  </field>
+  <field>
+    <name>subject_facet</name>
+    <usage>This field attempts to provide a description of the topic(s) covered by the work.  Since the greatest value of this facet is for finding other works covering similar topics, it is important that the same form be used from one item to another.  You should try to use a LC subject heading for this item.  If the subject heading has a hierarchical sub-division the separate parts should be separated by the characters “ -- “ (space, dash, dash, space).</usage>
+  </field>
+  <field>
+    <name>call_number_broad_facet</name>
+    <usage>This should only contain a textual description of the LC call number for the item in question.  If there is no LC call number, leave this field empty.  Additionally this field is not currently used. Use the call_number_facet field (described below instead)</usage>
+  </field>
+  <field>
+    <name>date_indexed_facet</name>
+    <usage>This field is used for index debugging purposes, it should be set to the date/time at which the solr add document is created.  It should have the format YYYYMMDDHHMM</usage>
+  </field>
+  <field>
+    <name>date_first_indexed_facet</name>
+    <usage>This field is used only for Marc record items.  It specifies the date the item was first added to the index.  It is used by the book cover retrieval system to know what’s new.</usage>
+  </field>
+  <field>
+    <name>release_date_facet</name>
+    <usage>This field is used only for video items.  If the video was released at the same time the movie was made, this value should equal the publication date.  If the video is for a movie that was originally released years prior to the video, this field holds that original release date.  Its format is simply a 4-digit year  YYYY</usage>
+  </field>
+  <field>
+    <name>shadowed_location_facet</name>
+    <usage>This field is used to prevent index documents from being returned in the normal course of searching.  The only valid values are “HIDDEN” and “VISIBLE”  If this field is omitted, it functions as if the value were “VISIBLE”.</usage>
+  </field>
+  <field>
+    <name>library_facet</name>
+    <usage> This field is used to list the physical location of the item in terms of which library the item resides.  If there is no physical item that the metadata references, this item should probably be left blank.  The valid values for this field are as follows:</usage>
+    <legalValues>
+            Darden Business School
+            Health Sciences
+            Law School
+            Alderman
+            Astronomy
+            Biology &amp; Psychology
+            Chemistry
+            Clemons
+            Education
+            Fine Arts
+            Mathematics
+            Music
+            Physics
+            Brown SEL
+            Special Collections
+            Semester at Sea
+            Ivy Stacks
+            Robertson Media Center
+            Mountain Lake
+            Blandy Experimental Farm
+        </legalValues>
+  </field>
+  <field>
+    <name>location_facet</name>
+    <usage>This field is used to list the physical location of the item in terms of the specific location within a library.  If there is no physical item that the metadata references, and the item is available directly via the interface, the value “Internet materials” should be used.</usage>
+  </field>
+  <field>
+    <name>language_facet</name>
+    <usage>This contains the language(s) of the item in question.  The full name of the language should be used, rather than an abbreviation.  Additionally if a language is only peripherally used a suffix can be appended to denote this.  For instance for a video that is primarily in French, but which has sub-titles in English, you could use the values: “French” and “English (subtitles in)” This list of the optional, parenthetical suffixes is listed below, followed by a full list of the accepted language names.</usage>
+  </field>
+  <field>
+    <name>region_facet</name>
+    <usage>This field is used to provide a description of the geographical region covered by the work, not the location the item was published.  As with other facet fields described here, using an identical representation for a given location is important so that other items covering the same region will be found.  Although at present this field is not actually used, the following shows some examples of the current desired form for entries in this field.</usage>
+    <legalValues>
+            Albemarle County (Va.)
+            Amsterdam (Netherlands)
+            Arkansas
+            Bulgaria
+            Mississippi River Valley
+            Cape of Good Hope (South Africa) 
+            Panama Canal (Panama) 
+            Williamsburg (Va.)
+            Württemberg (Germany)
+        </legalValues>
+  </field>
+  <field>
+    <name>music_composition_era</name>
+    <usage>This field is primarily used for "music" type items.  The values for this field denote when a particular music work was created, irrespective of the publication date of the specific item.  For very early works, only the century is recorded.  For works more recent than 1700 the decade of the work is recorded.  Multiple entries are allowed, and all that are relevant should be applied.  For instance for a collections of Civil War era compositions dating from 1842 to 1865, the facet values "1840's", "1850's", "1860's", "19th Century" should all be applied.  Care should be taken to validate the values entered for this field; I guarantee that the item you are indexing was not composed in the 193rd century.  The list of all values that are allowed in this field is as follows:</usage>
+    <legalValues>
+            B.C.
+            1st Century
+            2nd Century
+            3rd Century
+            4th Century
+            5th Century
+            6th Century
+            7th Century
+            8th Century
+            9th Century
+            10th Century
+            11th Century
+            12th Century
+            13th Century
+            14th Century
+            15th Century
+            16th Century
+            17th Century
+            18th Century
+            1700's
+            1710's
+            1720's
+            1730's
+            1740's
+            1750's
+            1760's
+            1770's
+            1780's
+            1790's
+            19th Century
+            1800's
+            1810's
+            1820's
+            1830's
+            1840's
+            1850's
+            1860's
+            1870's
+            1880's
+            1890's
+            20th Century
+            1900's
+            1910's
+            1920's
+            1930's
+            1940's
+            1950's
+            1960's
+            1970's
+            1980's
+            1990's
+            21th Century
+            2000's
+            2010's
+        </legalValues>
+  </field>
+  <field>
+    <name>call_number_facet</name>
+    <usage> This should only contain a textual description of the LC call number for the item in question.  If there is no LC call number, leave this field empty.  For the most part the entry only takes the first letter or two of the LC call number and includes the descriptive LC call number string for that division.  There are a few instances where a large, common, subdivision is subdivided based on the numeric portion following the initial letters, as well as a couple of instances where less common subdivisions are combined together.  The full list of allowable entries in this field are as follows:</usage>
+    <legalValues>    A - General Reference Works and Journals
+            AC - General Collections and Collected Works
+            AE - Encyclopedias
+            AG - Dictionaries and other general reference works
+            AI - General Indexes
+            AM - Museums and Collecting
+            AN - Newspapers
+            AP - Periodicals
+            AS - Academies
+            AY - Yearbooks, Almanacs, Directories
+            AZ - History of Scholarship
+            B - Philosophy
+            BC - Logic
+            BD - Speculative Philosophy
+            BF - Psychology
+            BH - Aesthetics
+            BJ - Ethics
+            BL - Religions, Mythology, Rationalism
+            BM - Judaism
+            BP - Islam, Bahaism, Theosophy
+            BQ - Buddhism
+            BR - Christianity
+            BS - The Bible
+            BT - Doctrinal Theology
+            BV - Practical Theology
+            BX - Christian Denominations
+            C - Auxiliary Sciences of History (General)
+            CB - History of Civilization
+            CC - Archaeology
+            CD - Diplomatics, Archives, Seals
+            CE - Technical Chronology, Calendar
+            CJ - Numismatics
+            CN - Inscriptions, Epigraphy
+            CR - Heraldry
+            CS - Genealogy
+            CT - Biography
+            D - History (General)
+            DA - History : Great Britain
+            DAW - History : Central Europe
+            DB - History : Austria, Liechtenstein, Hungary, Czechoslovakia
+            DC - History : France, Andorra, Monaco
+            DD - History : Germany
+            DE - History : Greco-Roman World
+            DF - History : Greece
+            DG - History : Italy, Malta
+            DH - History : Low Countries--Benelux Countries
+            DJ - History : Netherlands (Holland)
+            DJK - History : Eastern Europe (General)
+            DK - History : Russia, Soviet Union, Former Soviet Republics, Poland
+            DL - History : Northern Europe, Scandinavia
+            DP - History : Spain, Portugal
+            DQ - History : Switzerland
+            DR - History : Balkan Peninsula
+            DS - History : Asia
+            DT - History : Africa
+            DU - History : Australia, New Zealand, South Pacific islands
+            DX - History : Romanies
+            E11-E143 - History : America
+            E151-E904 - History : United States
+            F1-F975 - United States local history
+            F1001-F1146 - History, British America (including Canada) and Dutch America
+            F1170-F1170 - History, French America
+            F1201-F3799 - History, Latin America and Spanish America
+            G - Geography (General ). Atlases, Maps
+            GA - Mathematical geography. Cartography
+            GB - Physical Geography
+            GC - Oceanography
+            GE - Geographic aspects of Environmental Sciences
+            GF - Human Ecology and Anthropogeography
+            GN - Anthropology
+            GR - Folklore
+            GT - Manners and Customs
+            GV1-GV100 - Recreation and Leisure
+            GV1199-GV1570 - Games and Hobbies
+            GV1580-GV1799 - Dance
+            GV1800-GV1860 - Circuses, Amusement Parks, etc.
+            GV201-GV1198 - Sports and Physical Education
+            H - Social Sciences (General)
+            HA - Social Science Statistics
+            HB - Economic Theory and Demography
+            HC - Economic History and Conditions
+            HD - Industries, Land Use, Labor
+            HE - Transportation and Communications
+            HF - Commerce
+            HG - Finance
+            HJ - Public Finance
+            HM - Sociology (General)
+            HN - Social History and Conditions. Social problems. Social reform.
+            HQ - Family, Marriage, Women
+            HS - Societies : Secret, benevolent.
+            HT - Communities, Classes, Races
+            HV - Social Pathology. Social and public welfare. Criminology
+            HX - Socialism, Communism, Anarchism
+            J - General Legislative and Executive Papers
+            JA - Political Science (General)
+            JC - Political Theory
+            JF - Government (General)
+            JJ - Government : North America
+            JK - Government : United States
+            JL - Government : Canada, Latin America
+            JN - Government : Europe
+            JQ - Government : Asia, Africa, Australia, Pacific
+            JS - Local and Municipal Government
+            JV - Colonies, Emigration, Immigration
+            JX - International Law
+            JZ - International Relations
+            K - Law (General). Comparative and uniform law. Jurisprudence
+            KB - Religious Law (General). Comparative religious law.
+            KBM - Jewish Law
+            KBP - Islamic Law
+            KBR - History of Canon Law
+            KBU - Law of the Roman Catholic Church
+            KD - Law : United Kingdom and Ireland
+            KDZ - Law : America. North America (General)
+            KE - Law : Canada
+            KF - Law : United States
+            KG - Law : Latin America and the Caribbean
+            KH - Law : South America
+            KJ-KK - Law : Europe
+            KL-KW - Law : Asia and Eurasia, Africa, Pacific Area, and Antarctica
+            KZ - Law of nations
+            L - Education (General)
+            LA - History of Education
+            LB - Theory and Practice of Education
+            LC - Special Aspects of Education
+            LD - Educational institutions : United States
+            LE - Educational institutions : America (except United States)
+            LF - Educational institutions : Europe
+            LG - Educational institutions : Asia, Africa, Indian Ocean islands, Australia, New Zealand, Pacific islands 
+            LH - School Magazine and Papers
+            LJ - Student Fraternities and Societies : United States
+            LT - Textbooks
+            M - Music (General)
+            ML - Literature on Music
+            MT - Music : Instruction and Study
+            N - Visual Arts
+            NA - Architecture
+            NB - Sculpture
+            NC - Drawing, Design, Illustration
+            ND - Painting
+            NE - Print Media
+            NK - Decorative Arts
+            NX - Arts (General)
+            P - Philology, Linguistics
+            PA - Language and Literature : Latin and Greek
+            PB - Modern and Celtic Languages
+            PC - Romance Languages
+            PD - Germanic Languages
+            PE - English Languages
+            PF - West Germanic Languages
+            PG - Slavic, Baltic, Albanian Languages
+            PH - Uralic, Basque Languages
+            PJ - Oriental Languages and literatures
+            PK - Indo-Iranian Languages and literatures
+            PL - Eastern Asia, Africa, Oceania Languages and literatures
+            PM - Hyperborean, Indian, and Artificial Languages
+            PN1-PN1009 - Literature in General
+            PN1010-PN1389 - Poetry
+            PN1530-PN1988 - Drama
+            PN1990-PN1992 - Broadcasting, Radio, Television
+            PN1993-PN1999 - Motion Pictures
+            PN2000-PN3307 - Theater and Acting
+            PN3311-PN4500 - Prose - Fiction, Essays, Diaries, Letters, etc.
+            PN4699-PN5650 - Journalism
+            PN6700-PN6790 - Graphic Novels, Comic Books and Strips
+            PQ - French, Italian, Spanish, Portuguese Literature
+            PR - English Literature (excludes American literature)
+            PS - American Literature
+            PT - German, Dutch and Scandinavian Literatures
+            PZ - Children and Young Adult Literature
+            Q - Science (General)
+            QA - Mathematics
+            QB - Astronomy
+            QC - Physics
+            QD - Chemistry
+            QE - Geology
+            QH - Natural History and Biology
+            QK - Botany
+            QL - Zoology
+            QM - Human Anatomy
+            QP - Physiology
+            QR - Microbiology
+            R - Medicine(General)
+            RA - Public Medicine
+            RB - Pathology
+            RC - Internal Medicine
+            RD - Surgery
+            RE - Ophthalmology
+            RF - Otorhinolarynhology
+            RG - Gynecology and Obstetrics
+            RJ - Pediatrics
+            RK - Dentistry
+            RL - Dermatology
+            RM - Therapeutics and Pharmacology
+            RS - Pharmacy and materia medica
+            RT - Nursing
+            RZ - Other Systems of Medicine
+            S - Agriculture (General)
+            SB - Plant Culture
+            SD - Forestry
+            SF - Animal Culture
+            SH - Aquaculture, Fisheries, Angling
+            SK - Hunting Sports
+            T - Technology (General)
+            TA - General and Civil Engineering
+            TC - Hydraulic and Ocean Engineering
+            TD - Environmental Technology and Sanitary engineering
+            TE - Highway Engineering, Roads and pavements
+            TF - Railroad Engineering and Operation
+            TG - Bridge Engineering
+            TH - Building Construction
+            TJ - Mechanical Engineering and Machinery
+            TK - Electrical and Nuclear Engineering, Electronics
+            TL - Motor Vehicles, Aeronautics and Astronautics
+            TN - Mining Engineering and Metallurgy
+            TP - Chemical Technology
+            TR - Photography
+            TS - Manufactures
+            TT - Arts and Crafts
+            TX - Home Economics
+            U - Military Science
+            V - Naval Science
+            Z1001-Z8999 - Bibliographies
+            Z4-Z659 - Books, Printing and Publishing. Writing and Manuscripts.
+            Z662-Z1000 - Libraries
+            ZA - Information Resources (General)</legalValues>
+  </field>
+  
+  <field>
+    <name>collection_title_display</name>
+    <name>collection_title_text</name>
+    <usage>This contains the title for the archival collection (finding aid) associated with this record which itself represents some component or item within that collection.</usage>
+  </field>
+  <field>
+    <name>collection_pid_display</name>
+    <usage>The pid of the fedora object for the collection.  This is used for the links in the breadcrumbs display for each hierarchical search result.</usage>
+  </field>
+  <field>
+    <name>collection_abstract_display</name>
+    <name>collection_abstract_text</name>
+    <usage>A brief description of the archival collection.  This is displayed in the search results for the item representing the collection.</usage>
+  </field>
+  <field>
+    <name>hierarchy_level_facet</name>
+    <usage>The level of the coponent described by this record.  This may be "series", "item", "collection" or any of the other valid level specifiers.</usage>
+  </field>
+  <field>
+    <name>c0x_title_display</name>
+    <usage>The name of the component for the given level (x is 1-6).  This is used for the breadcrumbs display for each hierarchical search result.</usage>
+  </field>
+  <field>
+    <name>c0x_pid_display</name>
+    <usage>The pid of the fedora object for the component at the given level (x is 1-6).  This is used for the links in the breadcrumbs display for each hierarchical search result.</usage>
+  </field>
+</fields>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+</foxml:digitalObject>

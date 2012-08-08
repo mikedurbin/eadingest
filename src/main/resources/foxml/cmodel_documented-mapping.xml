@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<foxml:digitalObject VERSION="1.1" PID="cmodel:documented-mapping"
+  xmlns:foxml="info:fedora/fedora-system:def/foxml#"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+  <foxml:objectProperties>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#label"
+      VALUE="The content model object for documented XSLT mappings."/>
+  </foxml:objectProperties>
+  <foxml:datastream ID="DC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+    <foxml:datastreamVersion ID="DC1.0" LABEL="Dublin Core Record for this object"
+      MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/">
+      <foxml:xmlContent>
+        <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+          xmlns:dc="http://purl.org/dc/elements/1.1/"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:title>The content model object for documented XSLT mappings.</dc:title>
+          <dc:identifier>cmodel:documented-mapping</dc:identifier>
+        </oai_dc:dc>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+  <foxml:datastream ID="RELS-EXT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+    <foxml:datastreamVersion ID="RELS-EXT.0" LABEL="" MIMETYPE="application/rdf+xml">
+      <foxml:xmlContent>
+        <rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#"
+          xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+          <rdf:Description rdf:about="info:fedora/cmodel:documented-mapping">
+            <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ContentModel-3.0"/>
+            <fedora-model:hasService rdf:resource="info:fedora/sdef:documented-mapping"/>
+          </rdf:Description>
+        </rdf:RDF>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+  <foxml:datastream ID="DS-COMPOSITE-MODEL" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+    <foxml:datastreamVersion ID="DS-COMPOSITE-MODEL.0" LABEL="" MIMETYPE="text/xml">
+      <foxml:xmlContent>
+        <dsCompositeModel xmlns="info:fedora/fedora-system:def/dsCompositeModel#">
+          <dsTypeModel ID="XSLT">
+            <form MIME="text/xml"/>
+          </dsTypeModel>
+        </dsCompositeModel>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+  <foxml:datastream ID="mapping-attributes.xsd" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+    <foxml:datastreamVersion ID="mapping-attributes.xsd.0"
+      LABEL="Schema for the custom XML attributes that document mappings." MIMETYPE="text/xml">
+      <foxml:xmlContent>
+        <xs:schema xmlns="http://lib.virginia.edu/mapping"
+          xmlns:mapping="http://lib.virginia.edu/mapping"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+          <xs:attribute name="type">
+            <xs:annotation>
+              <xs:documentation> This attribute, when set on another XML element serves to mark the
+                nested content (typically simple text) as the name of a field in a solr index.
+              </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="solrField"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="sourceXPath" type="xs:string">
+            <xs:annotation>
+              <xs:documentation> This attribute, when set, represents the xpath (from some source
+                XML) whose value is used to document a mapping between that xpath and a solr field.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+          <xs:attribute name="normalization" type="xs:string">
+            <xs:annotation>
+              <xs:documentation> This attribute, when set, represents a human-readable description
+                of the normalization/transformation routine between the value of the evaluated
+                'sourceXPath' and the solr field specified by the value of an element marked with
+                the "solrField" type attribute. </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
+        </xs:schema>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+</foxml:digitalObject>

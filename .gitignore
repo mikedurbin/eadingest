@@ -2,6 +2,9 @@
 #################
 target/
 
+# Local data files #
+####################
+src/main/resources/ead/
 
 # Eclipse output #
 ##################
