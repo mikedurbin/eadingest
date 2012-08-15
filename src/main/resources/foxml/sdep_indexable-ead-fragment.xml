@@ -146,9 +146,10 @@
 
     <xsl:output byte-order-mark="no" encoding="UTF-8" media-type="text/xml" xml:space="preserve" indent="yes"/>
     
-    <xsl:variable name="fedora-host">localhost</xsl:variable>
+    <xsl:variable name="fedora-host">fedoratest01.lib.virginia.edu</xsl:variable>
+    <!--<xsl:variable name="fedora-host">localhost</xsl:variable>-->
     <xsl:param name="pid" />
-    <xsl:param name="debug" />
+    <xsl:param name="debug"/>
     
     <xsl:variable name="currentPid"><xsl:value-of select="$pid" /></xsl:variable>
     
@@ -257,7 +258,7 @@
             </doc:ul>
         </doc:desc>
     </doc:doc>
-    <xsl:template match="/ead/archdesc/did/repository" mode="#all">
+    <xsl:template match="ead/archdesc/did/repository" mode="#all">
         <field name="repository_name_display">
             <xsl:value-of select="normalize-space(text())"></xsl:value-of>
         </field>
@@ -271,7 +272,7 @@
             </doc:ul>
         </doc:desc>
     </doc:doc>
-    <xsl:template match="/ead/archdesc/did/unitid" mode="#all">
+    <xsl:template match="ead/archdesc/did/unitid" mode="#all">
         <field name="call_number_facet"><xsl:value-of select="normalize-space(text())" /></field>
         <field name="call_number_display"><xsl:value-of select="normalize-space(text())" /></field>
     </xsl:template>
@@ -335,10 +336,10 @@
             </doc:ul>
         </doc:desc>
     </doc:doc>
-    <xsl:template match="/ead/archdesc/did/unittitle" mode="primary">
+    <xsl:template match="ead/archdesc/did/unittitle" mode="primary">
         <xsl:variable name="title">
-            <xsl:for-each select="descendant-or-self::node()">
-                <xsl:value-of select="text()" />
+            <xsl:for-each select="current()//text()">
+                <xsl:value-of select="current()" />
             </xsl:for-each>
         </xsl:variable>
         <field name="main_title_display" boost="2.0"><xsl:value-of select="normalize-space($title)" /></field>
@@ -355,10 +356,10 @@
             </doc:ul>
         </doc:desc>
     </doc:doc>
-    <xsl:template match="/ead/archdesc/did/unittitle" mode="subsequent">
+    <xsl:template match="ead/archdesc/did/unittitle" mode="subsequent">
         <xsl:variable name="title">
-            <xsl:for-each select="descendant-or-self::node()">
-                <xsl:value-of select="text()" />
+            <xsl:for-each select="current()//text()">
+                <xsl:value-of select="current()" />
             </xsl:for-each>
         </xsl:variable>
         <field name="collection_title_display"><xsl:value-of select="normalize-space($title)" /></field>
@@ -393,8 +394,8 @@
     </doc:doc>
     <xsl:template match="scopecontent" mode="primary">
         <xsl:variable name="content">
-            <xsl:for-each select="descendant-or-self::node()">
-                <xsl:value-of select="text()" />
+            <xsl:for-each select="current()//text()">
+                <xsl:value-of select="current()" />
             </xsl:for-each>
         </xsl:variable>
         <field name="scope_content_display">
@@ -426,8 +427,8 @@
     </doc:doc>
     <xsl:template match="abstract" mode="#all">
         <xsl:variable name="abstract">
-            <xsl:for-each select="descendant-or-self::node()">
-                <xsl:value-of select="text()" />
+            <xsl:for-each select="current()//text()">
+                <xsl:value-of select="current()" />
             </xsl:for-each>
         </xsl:variable>
         <field name="collection_abstract_display" boost="0.5"><xsl:value-of select="normalize-space($abstract)" /></field>
@@ -514,8 +515,8 @@
     </doc:doc>
     <xsl:template match="unittitle" mode="primary">
         <xsl:variable name="title">
-            <xsl:for-each select="descendant-or-self::node()">
-                <xsl:value-of select="text()" />
+            <xsl:for-each select="current()//text()">
+                <xsl:value-of select="current()" />
             </xsl:for-each>
         </xsl:variable>
         <field name="main_title_display"><xsl:value-of select="normalize-space($title)" /></field>
@@ -576,31 +577,6 @@
         <field name="format_facet">Collection</field>
     </xsl:template>   
 
-    <!--
-    <doc:doc>
-        <doc:desc>
-            <doc:p mapping:type="solrField" mapping:sourceXPath="node()[starts-with(name(), 'c0')]/did/unittitle">c0x_title_display</doc:p>
-        </doc:desc>
-    </doc:doc>
-    <xsl:template match="node()[starts-with(name(), 'c0')]" mode="subsequent">
-        <xsl:if test="$debug">
-            <xsl:comment>Matched <xsl:value-of select="name()" /></xsl:comment>
-        </xsl:if>
-        <xsl:variable name="title">
-            <xsl:for-each select="did/unittitle/descendant-or-self::node()">
-                <xsl:value-of select="text()" />
-            </xsl:for-each>
-        </xsl:variable>
-        <field>
-            <xsl:attribute name="name">
-                <xsl:value-of select="name()" />
-                <xsl:text>_title_display</xsl:text>
-            </xsl:attribute>
-            <xsl:value-of select="normalize-space($title)" />
-        </field>
-    </xsl:template>
-    -->
-    
     <xsl:template match="marc:record" mode="marc">
         <xsl:if test="$debug">
             <xsl:comment>Matched MARC record</xsl:comment>
