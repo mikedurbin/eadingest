@@ -33,6 +33,10 @@ created from EAD XML files.
 Summarizes the recognized content in the repository while reindexing the 
 individual objects.
 
+Within solr.properties you can specify just a single "collection" to reindex
+or you may specify that you wish to do a "dry run" which would list the pids
+to be reindexed without actually sending any update messges to solr.
+
 	mvn compile -Pindex
 
 

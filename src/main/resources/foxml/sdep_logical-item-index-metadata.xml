@@ -19,7 +19,7 @@
   <rdf:Description rdf:about="info:fedora/sdep:logical-item-index-metadata">
     <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ServiceDeployment-3.0"/>
     <fedora-model:hasModel rdf:resource="info:fedora/cmodel:documented-mapping"/>
-    <fedora-model:isDeploymentOf rdf:resource="info:fedora/sdef:ead-node"/>
+    <fedora-model:isDeploymentOf rdf:resource="info:fedora/sdef:ead-component"/>
     <fedora-model:isContractorOf rdf:resource="info:fedora/cmodel:logical-item"/>
   </rdf:Description>
 </rdf:RDF>
@@ -87,7 +87,7 @@
 </foxml:datastreamVersion>
 </foxml:datastream>
 <foxml:datastream ID="DSINPUTSPEC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
-<foxml:datastreamVersion ID="DSINPUTSPEC.0" LABEL="" CREATED="2012-07-13T20:32:23.766Z" MIMETYPE="text/xml" SIZE="353">
+<foxml:datastreamVersion ID="DSINPUTSPEC.0" LABEL="" MIMETYPE="text/xml">
 <foxml:xmlContent>
 <fbs:DSInputSpec xmlns:fbs="http://fedora.comm.nsdlib.org/service/bindspec" label="N/A">
   <fbs:DSInput DSMax="1" DSMin="1" DSOrdinality="false" wsdlMsgPartName="DC">
@@ -101,7 +101,7 @@
 </foxml:datastream>
 <foxml:datastream ID="XSLT" STATE="A" CONTROL_GROUP="R" VERSIONABLE="true">
 <foxml:datastreamVersion ID="XSLT.0" LABEL="" MIMETYPE="text/xml">
-  <foxml:contentLocation TYPE="URL" REF="http://local.fedora.server/fedora/objects/sdep:ead-node/datastreams/XSLT/content"/>
+  <foxml:contentLocation TYPE="URL" REF="http://local.fedora.server/fedora/objects/sdep:indexable-ead-fragment/datastreams/XSLT/content"/>
 </foxml:datastreamVersion>
 </foxml:datastream>
 </foxml:digitalObject>

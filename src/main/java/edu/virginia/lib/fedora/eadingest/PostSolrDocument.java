@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.Properties;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -22,14 +21,9 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 
 public class PostSolrDocument {
     
-    public static void indexPid(FedoraClient fc, String pid) throws Exception {
+    public static void indexPid(FedoraClient fc, String pid, String updateUrl, String servicePid, String serviceMethod) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        writeStreamToStream(FedoraClient.getDissemination(pid, "sdef:ead-node", "getIndexingMetadata").execute(fc).getEntityInputStream(), baos);
-        
-        Properties p = new Properties();
-        p.load(PostSolrDocument.class.getClassLoader().getResourceAsStream("config/solr.properties"));
-        
-        String updateUrl = p.getProperty("solr-update-url");
+        writeStreamToStream(FedoraClient.getDissemination(pid, servicePid, serviceMethod).execute(fc).getEntityInputStream(), baos);
         
         HttpClient client = new HttpClient();
 

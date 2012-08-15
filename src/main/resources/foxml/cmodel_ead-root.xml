@@ -27,6 +27,7 @@
           <rdf:Description rdf:about="info:fedora/cmodel:ead-root">
             <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ContentModel-3.0"/>
             <fedora-model:hasService rdf:resource="info:fedora/sdef:indexable"/>
+            <fedora-model:hasService rdf:resource="info:fedora/sdef:hierarchical-metadata"/>
           </rdf:Description>
         </rdf:RDF>
       </foxml:xmlContent>
