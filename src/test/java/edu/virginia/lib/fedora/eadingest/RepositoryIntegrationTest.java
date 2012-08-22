@@ -14,6 +14,8 @@ import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.FedoraCredentials;
 
+import edu.virginia.lib.fedora.eadingest.container.AnalyzeContainerInformation;
+
 /**
  * A suite of tests that ingests a great deal of content into 
  * the fedora repository and tests the actual ingestability and
@@ -63,8 +65,12 @@ public class RepositoryIntegrationTest {
         p.load(EADIngest.class.getClassLoader().getResourceAsStream("config/fedora-integration-test.properties"));
         FedoraClient fc = new FedoraClient(new FedoraCredentials(p.getProperty("fedora-url"), p.getProperty("fedora-username"), p.getProperty("fedora-password")));
 
+        p = new Properties();
+        p.load(AnalyzeContainerInformation.class.getClassLoader().getResourceAsStream("config/ontology.properties"));
+        EADOntology o = new EADOntology(p);
+        
         List<EADIngest> newlyIngestedEad = new ArrayList<EADIngest>();
-        for (EADIngest i : EADIngest.getRecognizedEADIngests()) {
+        for (EADIngest i : EADIngest.getRecognizedEADIngests(o)) {
             if (!i.exists(fc)) {
                 i.buildFedoraObjects(fc);
                 newlyIngestedEad.add(i);

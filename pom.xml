@@ -88,6 +88,34 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>link-containers</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>compile</phase>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+                <configuration>
+                  <mainClass>edu.virginia.lib.fedora.eadingest.container.AnalyzeContainerInformation</mainClass>
+                  <!-- 
+                  <arguments>
+                    <argument>changeme:568</argument>
+                    <argument>link</argument>
+                  </arguments>
+                  -->
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <dependencies>

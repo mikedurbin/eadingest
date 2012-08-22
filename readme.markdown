@@ -29,6 +29,21 @@ created from EAD XML files.
 
 	mvn compile -Ppurge
 
+## AnalyzeContainerInformation.java
+A slow-running program that can be used to link component elements to the physical 
+containers in which the items are stored.  In cases where finding aids reference
+containers in ways that are not consistent with the way containers are identified
+in the marc record, this program can summarize all the container names referenced 
+by both records and a human can then create a mapping from one set of identifiers 
+to the other.  Once that mapping is codified (and this program is updated to use 
+it) the program can be run again and will add links between the records in the
+repository.  Currently the program is hard-coded to work with the naming 
+"conventions" in the "MSS5950" finding aid.
+
+	mvn compile -Plink-containers -Dexec.args="(pid) summary"
+
+	mvn compile -Plink-containers -Dexec.args="(pid) link"
+
 ## EADIndex.java 
 Summarizes the recognized content in the repository while reindexing the 
 individual objects.
