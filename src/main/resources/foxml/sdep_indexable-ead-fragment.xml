@@ -146,10 +146,10 @@
 
     <xsl:output byte-order-mark="no" encoding="UTF-8" media-type="text/xml" xml:space="preserve" indent="yes"/>
     
-    <xsl:variable name="fedora-host">fedoratest01.lib.virginia.edu</xsl:variable>
-    <!--<xsl:variable name="fedora-host">localhost</xsl:variable>-->
+    <!--<xsl:variable name="fedora-host">fedoratest01.lib.virginia.edu</xsl:variable>-->
+    <xsl:variable name="fedora-host">localhost</xsl:variable>
     <xsl:param name="pid" />
-    <xsl:param name="debug" select="true()"></xsl:param>
+    <xsl:param name="debug">debug</xsl:param>
     
     <xsl:variable name="currentPid"><xsl:value-of select="$pid" /></xsl:variable>
     
@@ -246,6 +246,19 @@
                 <field name="full_hierarchy_display">
                     <xsl:value-of select="unparsed-text(concat('http://', $fedora-host, ':8080/fedora/objects/', $pid, '/methods/sdef:hierarchical-metadata/getFullSummary'))" />
                 </field>
+                
+                <!-- Add the container information -->
+                <xsl:variable name="container">
+                    <xsl:call-template name="index-containers">
+                        <xsl:with-param name="pid" select="$pid" />
+                        <xsl:with-param name="ancestry" select="$ancestors" />
+                    </xsl:call-template>
+                </xsl:variable>
+                <xsl:if test="$container">
+                    <field name="container_display">
+                        <xsl:value-of select="$container" />
+                    </field>
+                </xsl:if>
             </doc>
         </add>
     </xsl:template>
@@ -751,84 +764,74 @@
     
     <doc:doc>
         <doc:desc>
+            <doc:p>
+                This method is recursive, and checks each level of the hierarchy (from
+                most narrow to most broad) for references to containers in which this
+                item is present.  At the first level in which any container is found, 
+                the barcode values of all containers referenced at that level are included
+                in the solr document.  The presence of more than one value implies in this
+                case, not that multiple copies exist, but that there may be uncertainty
+                about which of the referenced barcods contains the item, or that the 
+                component spans multiple containers.
+            </doc:p>
             <doc:ul>
-                <doc:li mapping:type="solrField" mapping:sourceXPath="[pid of record parsed]">c0x_pid_display</doc:li>
-                <doc:li mapping:type="solrField" mapping:sourceXPath="[pid of record parsed]">collection_pid_display</doc:li>
+                <doc:li mapping:type="solrField" mapping:sourceXPath="[the metadata records for each container that likely contains this item or component]">container_metadata_display</doc:li>
             </doc:ul>
         </doc:desc>
     </doc:doc>
-    <xsl:template name="index-parent">
+    <xsl:template name="index-containers">
         <xsl:param name="pid" required="yes" />
-        
-        <!-- TODO: check for relationships to holdings records and index those too-->
-        
-        <!-- check for marc record and index them as well -->
-        <xsl:variable name="lookupMarcUri">
-                <xsl:text>http://</xsl:text><xsl:value-of select="$fedora-host"></xsl:value-of><xsl:text>:8080/fedora/risearch?type=tuples&amp;lang=itql&amp;format=Sparql&amp;query=select%20%24marcUri%20from%20%3C%23ri%3E%20%0Awhere%20%24marcUri%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationship%23hasHoldingRecordsFor%3E%20%3Cinfo%3Afedora%2F</xsl:text>
-                <xsl:value-of select="$pid" />
-            <xsl:text>%3E</xsl:text>
-        </xsl:variable>
-        <xsl:if test="$debug">
-            <xsl:comment>
-                Querying for related MARC metadata from pid  <xsl:value-of select="$pid" /> using query: <xsl:value-of select="$lookupMarcUri" />
-            </xsl:comment>
-        </xsl:if>
-        <xsl:variable name="marcSparqlResult" select="document($lookupMarcUri)" />
-        <xsl:for-each select="$marcSparqlResult/s:sparql/s:results/s:result/s:marcUri/@uri">
-            <xsl:variable name="marcPid" select="substring(current(), 13)" />
-            <xsl:if test="$debug">
-                <xsl:comment>Pulling MARC metadata from <xsl:value-of select="$marcPid" /></xsl:comment>
-            </xsl:if>
-            <xsl:variable name="marcMetadataUrl">
-                <xsl:text>http://</xsl:text><xsl:value-of select="$fedora-host" /><xsl:text>:8080/fedora/objects/</xsl:text>
-                <xsl:value-of select="$marcPid" />
-                <xsl:text>/datastreams/descMetadata/content</xsl:text>
-            </xsl:variable>
-            <xsl:variable name="parentMarcMetadata" select="document($marcMetadataUrl)" />
-            
-            <xsl:apply-templates select="$parentMarcMetadata//*" mode="marc" />
-        </xsl:for-each>
-        
-        
-        <xsl:variable name="lookupParentUri">
-            <xsl:text>http://</xsl:text><xsl:value-of select="$fedora-host" /><xsl:text>:8080/fedora/risearch?type=tuples&amp;lang=itql&amp;format=Sparql&amp;query=select%20%24parentUri%20from%20%3C%23ri%3E%20%0Awhere%20%3Cinfo%3Afedora%2F</xsl:text>
+        <xsl:param name="ancestry"/>
+        <xsl:param name="index" select="number('0')" />
+        <xsl:comment>
+            <xsl:text>index-containers(</xsl:text>
             <xsl:value-of select="$pid" />
-            <xsl:text>%3E%20%3Cinfo%3Afedora%2Ffedora-system%3Adef%2Frelations-external%23isPartOf%3E%20%24parentUri</xsl:text>
+            <xsl:text>, [ancestry], </xsl:text>
+            <xsl:value-of select="$index" />
+            <xsl:text>)</xsl:text>
+        </xsl:comment>    
+        <xsl:variable name="current">
+            <xsl:call-template name="index-container">
+                <xsl:with-param name="pid" select="$pid" />
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:if test="$current">
+            <xsl:copy-of select="$current" />
+        </xsl:if>
+        <xsl:if test="not($current)">
+            <xsl:if test="$index + 1 &lt;= count($ancestry)">
+                <xsl:call-template name="index-containers">
+                    <xsl:with-param name="pid" select="$ancestry/ancestor[$index + 1]/pid" />
+                    <xsl:with-param name="ancestry" select="$ancestry" />
+                    <xsl:with-param name="index" select="$index + 1" />
+                </xsl:call-template>
+            </xsl:if>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template name="index-container">
+        <xsl:param name="pid" required="yes" />
+        <xsl:variable name="lookupContainerUri">
+            <xsl:text>http://</xsl:text><xsl:value-of select="$fedora-host" /><xsl:text>:8080/fedora/risearch?type=tuples&amp;lang=itql&amp;format=Sparql&amp;query=select%20%24containerUri%20from%20%3C%23ri%3E%20%0Awhere%20%3Cinfo%3Afedora%2F</xsl:text>
+            <xsl:value-of select="$pid" />
+            <xsl:text>%3E%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationships%23isContainedWithin%3E%20%24containerUri</xsl:text>
         </xsl:variable>
         <xsl:if test="$debug">
             <xsl:comment>
-                Querying for related metadata from pid  <xsl:value-of select="$pid" /> using query: <xsl:value-of select="$lookupParentUri" />
+                Querying for containers for pid  <xsl:value-of select="$pid" /> using query: <xsl:value-of select="$lookupContainerUri" />
             </xsl:comment>
         </xsl:if>
-        <xsl:variable name="sparqlResult" select="document($lookupParentUri)" />
-        <xsl:variable name="parentPid" select="substring($sparqlResult/s:sparql/s:results/s:result/s:parentUri/@uri, 13)"/>
-        <xsl:if test="$parentPid != ''">
-            <xsl:if test="$debug">
-                <xsl:comment>Pulling metadata from <xsl:value-of select="$parentPid" /></xsl:comment>
-            </xsl:if>
-            <xsl:variable name="parentMetadataUrl">
-                <xsl:text>http://</xsl:text><xsl:value-of select="$fedora-host" /><xsl:text>:8080/fedora/objects/</xsl:text>
-                <xsl:value-of select="$parentPid" />
-                <xsl:text>/datastreams/descMetadata/content</xsl:text>
-            </xsl:variable>
-            <xsl:variable name="parentDescMetadata" select="document($parentMetadataUrl)" />
-            
-            <xsl:for-each select="$parentDescMetadata//node()[starts-with(name(), 'c0')]">
-                <field>
-                    <xsl:attribute name="name"><xsl:value-of select="name()" /><xsl:text>_pid_display</xsl:text></xsl:attribute>
-                    <xsl:value-of select="$parentPid" />
-                </field>
-            </xsl:for-each>
-            <xsl:if test="$parentDescMetadata//ead">
-                <field name="collection_pid_display">
-                    <xsl:value-of select="$parentPid" />
-                </field>
-            </xsl:if>
-            <xsl:apply-templates select="$parentDescMetadata//*" mode="subsequent" />
-            
-            <xsl:call-template name="index-parent">
-                <xsl:with-param name="pid" select="$parentPid" />
-            </xsl:call-template>
+        <xsl:variable name="sparqlResult" select="document($lookupContainerUri)" />
+        <xsl:variable name="containerUris" select="$sparqlResult/s:sparql/s:results/s:result/s:containerUri"/>
+        <xsl:if test="$containerUris">
+            <field name="container_metadata_display">
+                <xsl:text>&lt;containers&gt;</xsl:text>
+                    <xsl:for-each select="$containerUris">
+                        <xsl:variable name="containerPid" select="substring($containerUris/@uri, 13)" />
+                        <xsl:value-of select="unparsed-text(concat('http://', $fedora-host, ':8080/fedora/objects/',$containerPid, '/datastreams/descMetadata/content'))" />
+                    </xsl:for-each>
+                <xsl:text>&lt;/containers&gt;</xsl:text>
+            </field>
         </xsl:if>
     </xsl:template>
     
