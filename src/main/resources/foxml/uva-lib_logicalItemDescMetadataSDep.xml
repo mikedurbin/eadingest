@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<foxml:digitalObject VERSION="1.1" PID="sdep:logical-item-desc-metadata"
+<foxml:digitalObject VERSION="1.1" PID="uva-lib:logicalItemDescMetadataSDep"
   xmlns:foxml="info:fedora/fedora-system:def/foxml#"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
@@ -17,47 +17,47 @@
           xmlns:dc="http://purl.org/dc/elements/1.1/"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
-          <dc:identifier>sdep:logical-item-desc-metadata</dc:identifier>
+          <dc:identifier>uva-lib:logicalItemDescMetadataSDep</dc:identifier>
         </oai_dc:dc>
       </foxml:xmlContent>
     </foxml:datastreamVersion>
   </foxml:datastream>
   <foxml:datastream ID="RELS-EXT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
-    <foxml:datastreamVersion ID="RELS-EXT.0" LABEL="" MIMETYPE="application/rdf+xml">
+    <foxml:datastreamVersion ID="RELS-EXT.0"  FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0" MIMETYPE="application/rdf+xml">
       <foxml:xmlContent>
         <rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#"
           xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-          <rdf:Description rdf:about="info:fedora/sdep:logical-item-desc-metadata">
+          <rdf:Description rdf:about="info:fedora/uva-lib:logicalItemDescMetadataSDep">
             <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ServiceDeployment-3.0"/>
-            <fedora-model:isDeploymentOf rdf:resource="info:fedora/sdef:logical-item-desc-metadata"/>
-            <fedora-model:isContractorOf rdf:resource="info:fedora/cmodel:logical-item"/>
+            <fedora-model:isDeploymentOf rdf:resource="info:fedora/uva-lib:logicalItemDescMetadataSDef"/>
+            <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:logicalItemCModel"/>
           </rdf:Description>
         </rdf:RDF>
       </foxml:xmlContent>
     </foxml:datastreamVersion>
   </foxml:datastream>
   <foxml:datastream ID="METHODMAP" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
-    <foxml:datastreamVersion ID="METHODMAP.0" LABEL="" MIMETYPE="text/xml">
+    <foxml:datastreamVersion ID="METHODMAP.0" FORMAT_URI="info:fedora/fedora-system:FedoraSDepMethodMap-1.1" MIMETYPE="text/xml">
       <foxml:xmlContent>
-        <fmm:MethodMap xmlns:fmm="http://fedora.comm.nsdlib.org/service/methodmap" name="N/A">
-          <fmm:method operationName="getDescMetadata" wsdlMsgName="getDescMetadataRequest"
+        <fmm:MethodMap xmlns:fmm="http://fedora.comm.nsdlib.org/service/methodmap" name="logicalItemDescMetadataSDepMethods">
+          <fmm:Method operationName="getDescMetadata" wsdlMsgName="getDescMetadataRequest"
             wsdlMsgOutput="getDescMetadataResponse">
             <fmm:DatastreamInputParm parmName="RELS-EXT" passBy="URL_REF" required="true"/>
-            <fmm:MethodReturnType wsdlMsgName="getDescMetadataResponse" wsdlMsgTOMIME="N/A"/>
-          </fmm:method>
+            <fmm:MethodReturnType wsdlMsgName="getDescMetadataResponse" wsdlMsgTOMIME="text/xml"/>
+          </fmm:Method>
         </fmm:MethodMap>
       </foxml:xmlContent>
     </foxml:datastreamVersion>
   </foxml:datastream>
   <foxml:datastream ID="WSDL" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
-    <foxml:datastreamVersion ID="WSDL.0" LABEL="" MIMETYPE="text/xml">
+    <foxml:datastreamVersion ID="WSDL.0" FORMAT_URI="http://schemas.xmlsoap.org/wsdl/" MIMETYPE="text/xml">
       <foxml:xmlContent>
         <wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
           xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
           xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap"
           xmlns:soapenc="http://schemas.xmlsoap.org/wsdl/soap/encoding"
           xmlns:this="urn:thisNamespace" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="N/A"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="logicalItemDescMetadataSDepWSDL"
           targetNamespace="urn:thisNamespace">
           <wsdl:types>
             <xsd:schema targetNamespace="urn:thisNamespace">
@@ -81,7 +81,7 @@
               <wsdl:output message="this:getDescMetadataResponse"/>
             </wsdl:operation>
           </wsdl:portType>
-          <wsdl:service name="N/A">
+          <wsdl:service name="local-port">
             <wsdl:port binding="this:binding" name="port">
               <http:address location="LOCAL"/>
             </wsdl:port>
@@ -90,12 +90,12 @@
             <http:binding verb="GET"/>
             <wsdl:operation name="getDescMetadata">
               <http:operation
-                location="http://local.fedora.server/saxon/SaxonServlet?source=(RELS-EXT)&amp;style=http://local.fedora.server/fedora/get/sdep:logical-item-desc-metadata/XSLT&amp;pid=(pid)&amp;clear-stylesheet-cache=yes"/>
+                location="http://local.fedora.server/saxon/SaxonServlet?source=(RELS-EXT)&amp;style=http://local.fedora.server/fedora/get/uva-lib:logicalItemDescMetadataSDep/XSLT&amp;pid=(pid)&amp;clear-stylesheet-cache=yes"/>
               <wsdl:input>
                 <http:urlReplacement/>
               </wsdl:input>
               <wsdl:output>
-                <mime:content type="N/A"/>
+                <mime:content type="text/xml"/>
               </wsdl:output>
             </wsdl:operation>
           </wsdl:binding>
@@ -104,9 +104,9 @@
     </foxml:datastreamVersion>
   </foxml:datastream>
   <foxml:datastream ID="DSINPUTSPEC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
-    <foxml:datastreamVersion ID="DSINPUTSPEC.0" LABEL="" MIMETYPE="text/xml">
+    <foxml:datastreamVersion ID="DSINPUTSPEC.0" FORMAT_URI="info:fedora/fedora-system:FedoraDSInputSpec-1.1" MIMETYPE="text/xml">
       <foxml:xmlContent>
-        <fbs:DSInputSpec xmlns:fbs="http://fedora.comm.nsdlib.org/service/bindspec" label="N/A">
+        <fbs:DSInputSpec xmlns:fbs="http://fedora.comm.nsdlib.org/service/bindspec" label="logicalItemDescMetadataSDepInputSpec">
           <fbs:DSInput DSMax="1" DSMin="1" DSOrdinality="false" wsdlMsgPartName="RELS-EXT">
             <fbs:DSInputLabel>RELS-EXT</fbs:DSInputLabel>
             <fbs:DSMIME>application/rdf+xml</fbs:DSMIME>
@@ -128,7 +128,7 @@
           exclude-result-prefixes="xs rdf uva" version="2.0">
           <xsl:template match="/">
             <xsl:variable name="itemMetadataUrl">
-              <xsl:text>http://fedoratest01.lib.virginia.edu:8080/fedora/objects</xsl:text>
+              <xsl:text>http://localhost:8080/fedora/objects</xsl:text>
               <xsl:value-of
                 select="substring(rdf:RDF/rdf:Description/uva:isPlaceholderFor/@rdf:resource, string-length('info:fedora/'))"/>
               <xsl:text>/datastreams/descMetadata/content</xsl:text>

@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -13,6 +16,10 @@ import org.junit.experimental.categories.Category;
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.FedoraCredentials;
+import com.yourmediashelf.fedora.generated.access.MethodType;
+import com.yourmediashelf.fedora.generated.access.ServiceDefinitionType;
+import com.yourmediashelf.fedora.generated.management.Datastream;
+import com.yourmediashelf.fedora.generated.management.Validation;
 
 import edu.virginia.lib.fedora.eadingest.container.AnalyzeContainerInformation;
 
@@ -30,6 +37,8 @@ public class RepositoryIntegrationTest {
     
     private static List<String> pidsToPurge;
     
+    private static List<EADIngest> newlyIngestedEad;
+    
     @BeforeClass 
     public static void setUpFedoraClient() throws IOException {
         Properties p = new Properties();
@@ -40,26 +49,98 @@ public class RepositoryIntegrationTest {
     /**
      * Ingests each content model (and service definitions and service deployment) object
      * to ensure that they FOXML is well-formed and ingestable and to set up the repository
-     * for other integration tests.
+     * for other integration tests.  This method also ingests all the recognized finding
+     * aids.  This method may take hours to run.
      */
-    @Test public synchronized void ingestContentModels() throws Exception {
+    @Test public synchronized void ingestTestObjects() throws Exception {
         if (pidsToPurge == null) {
             pidsToPurge = new ArrayList<String>();
             pidsToPurge.addAll(EADIngest.ingestSupportObjects(fc));
+            ingestFindingAids();
         }
     }
     
-    @Test public void testDocumentedMapping() throws Exception { 
-        ingestContentModels();
-        if (EADIngest.doesObjectExist(fc, "sdep:indexable-ead-fragment") && FedoraClient.getDissemination("sdep:indexable-ead-fragment", "sdef:documented-mapping", "getMappingDocumentation").execute(fc).getStatus() / 100 != 2) {
-            throw new RuntimeException("getDocumentedMapping does not work for sdep:indexable-ead-fragment!");
-        } else {
-            System.out.println("sdep:indexable-ead-fragment is properly documented and the disseminators work.");
+    @Test public synchronized void validateSupportObjects() throws Exception {
+        ingestTestObjects();
+        StringBuffer errors = new StringBuffer();
+        DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        try {
+            for (String pid : pidsToPurge) {
+                validateNonFedoraMethods(pid, fc, errors);
+            }
+        } finally {
+            if (errors.length() > 0) {
+                System.err.println(errors);
+                throw new RuntimeException("One or more content model objects is invalid!");
+            }
         }
     }
     
-    @Test public void ingestFindingAids() throws Exception {
-        ingestContentModels();
+    @Test public synchronized void validateEADObjects() throws Exception {
+        ingestTestObjects();
+        StringBuffer errors = new StringBuffer();
+        
+        Properties p = new Properties();
+        p.load(AnalyzeContainerInformation.class.getClassLoader().getResourceAsStream("config/ontology.properties"));
+        EADOntology o = new EADOntology(p);
+        
+        try {
+            List<String> collectionRootPids = EADIngest.getSubjects(fc, o.eadRootCModel(), EADIngest.HAS_MODEL_PREDICATE);
+            for (String cpid : collectionRootPids) {
+                validateComponentAndChildren(fc, cpid, "  ", o, errors);
+                for (String marcPid : EADIngest.getObjects(fc,  cpid, o.hasMarc())) {
+                    validateNonFedoraMethods(marcPid, fc, errors);
+                    for (String containerPid : EADIngest.getObjects(fc,  marcPid, o.definesContainer())) {
+                        validateNonFedoraMethods(containerPid, fc, errors);
+                    }
+                }
+            }
+            
+        } finally {
+            if (errors.length() > 0) {
+                System.err.println(errors);
+                throw new RuntimeException("One or more EAD objects is invalid!");
+            }
+        }
+    }
+    
+    public static void validateComponentAndChildren(FedoraClient fc, String parentPid, String indent, EADOntology o, StringBuffer errors) throws Exception {
+        validateNonFedoraMethods(parentPid, fc, errors);
+        for (String partPid : EADIngest.getOrderedParts(fc, parentPid, o.isPartOf(), o.follows())) {
+            System.out.println(indent + "component --> " + partPid);
+            validateComponentAndChildren(fc, partPid, indent + "  ", o, errors);
+        }
+    }
+    
+    public static void validateNonFedoraMethods(String pid, FedoraClient fc, StringBuffer errors) throws FedoraClientException {
+        for (ServiceDefinitionType service : FedoraClient.listMethods(pid).execute(fc).getObjectMethods().getObjectMethodsTypeAttribute()) {
+            if (!service.getPid().startsWith("fedora-system")) {
+                for (MethodType m : service.getMethod()) {
+                    int status = FedoraClient.getDissemination(pid, service.getPid(), m.getName()).execute(fc).getStatus();
+                    if (status / 100 != 2) {
+                        errors.append(pid + "/methods/" + service.getPid() + "/" + m.getName() + " failed " + status + "\n");
+                    } else {
+                        System.out.println(pid + "/methods/" + service.getPid() + "/" + m.getName() + " passed " + status);
+                    }
+                }
+            }
+        }
+    }
+    
+    @Test public void testMethods() throws Exception {
+        ingestTestObjects();
+        StringBuffer errors = new StringBuffer();
+        for (String pid : pidsToPurge) {
+            
+        }
+        if (errors.length() > 0) {
+            System.err.println(errors);
+            throw new RuntimeException("One or more content model objects is invalid!");
+        }
+    }
+    
+    private void ingestFindingAids() throws Exception {
+        ingestTestObjects();
         
         Properties p = new Properties();
         p.load(EADIngest.class.getClassLoader().getResourceAsStream("config/fedora-integration-test.properties"));
@@ -69,23 +150,17 @@ public class RepositoryIntegrationTest {
         p.load(AnalyzeContainerInformation.class.getClassLoader().getResourceAsStream("config/ontology.properties"));
         EADOntology o = new EADOntology(p);
         
-        List<EADIngest> newlyIngestedEad = new ArrayList<EADIngest>();
+        newlyIngestedEad = new ArrayList<EADIngest>();
         for (EADIngest i : EADIngest.getRecognizedEADIngests(o)) {
             if (!i.exists(fc)) {
                 i.buildFedoraObjects(fc);
                 newlyIngestedEad.add(i);
             }
         }
-        
-        // TODO: test indexing at each level
-        
-        for (EADIngest i : newlyIngestedEad) {
-            i.purgeFedoraObjects(fc);
-        }
     }
     
     @AfterClass
-    public static void cleanUpObjects() throws IOException, NumberFormatException, FedoraClientException {
+    public static void cleanUpObjects() throws Exception {
         for (String pid : pidsToPurge) {
             if (EADIngest.doesObjectExist(fc, pid)) {
                 try {
@@ -97,6 +172,14 @@ public class RepositoryIntegrationTest {
                     // bummer... fall through and keep deleting
                     // the rest
                 }
+            }
+        }
+        
+        for (EADIngest i : newlyIngestedEad) {
+            try {
+                i.purgeFedoraObjects(fc);
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
     }

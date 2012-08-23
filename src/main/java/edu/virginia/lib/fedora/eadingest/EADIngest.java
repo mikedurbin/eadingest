@@ -276,15 +276,19 @@ public class EADIngest {
                 } else {
                     // ingest the object if not present
                     if (!exists) {
-                        IngestResponse response = FedoraClient.ingest().content(foxml).execute(fc);
-                        if (!response.getPid().equals(impliedPid)) {
-                            throw new RuntimeException("Expected \"" + foxml.getName() + "\" to produce an object with pid \"" + impliedPid + "\" but got \"" + response.getPid() + "\" instead!");
-                        }
-                        if (response.getStatus() / 100 != 2) {
-                            throw new RuntimeException("Error ingesting \"" + foxml.getName() + "\": " + response.getStatus());
-                        } else {
-                            System.out.println("Ingested " + response.getPid() + ".");
-                            updated.add(impliedPid);
+                        try {
+                            IngestResponse response = FedoraClient.ingest().content(foxml).execute(fc);
+                            if (!response.getPid().equals(impliedPid)) {
+                                throw new RuntimeException("Expected \"" + foxml.getName() + "\" to produce an object with pid \"" + impliedPid + "\" but got \"" + response.getPid() + "\" instead!");
+                            }
+                            if (response.getStatus() / 100 != 2) {
+                                throw new RuntimeException("Error ingesting \"" + foxml.getName() + "\": " + response.getStatus());
+                            } else {
+                                System.out.println("Ingested " + response.getPid() + ".");
+                                updated.add(impliedPid);
+                            }
+                        } catch (Exception ex) {
+                            throw new RuntimeException("Exception while ingesting \"" + foxml + "\"!", ex);
                         }
                     } else {
                         System.out.println("Skipped " + impliedPid + " because it was already present.");
