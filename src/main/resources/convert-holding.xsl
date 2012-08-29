@@ -6,6 +6,7 @@
     <xsl:template match="holding">
         <container>
             <callNumber><xsl:value-of select="@callNumber" /></callNumber>
+            <catalogKey><xsl:value-of select="catalogKey" /></catalogKey>
             <type>box</type>
             <barCode><xsl:value-of select="copy/@barCode" /></barCode>
         </container>

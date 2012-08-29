@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,8 +15,6 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.client.FedoraCredentials;
 import com.yourmediashelf.fedora.generated.access.MethodType;
 import com.yourmediashelf.fedora.generated.access.ServiceDefinitionType;
-import com.yourmediashelf.fedora.generated.management.Datastream;
-import com.yourmediashelf.fedora.generated.management.Validation;
 
 import edu.virginia.lib.fedora.eadingest.container.AnalyzeContainerInformation;
 
@@ -63,7 +58,6 @@ public class RepositoryIntegrationTest {
     @Test public synchronized void validateSupportObjects() throws Exception {
         ingestTestObjects();
         StringBuffer errors = new StringBuffer();
-        DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
         try {
             for (String pid : pidsToPurge) {
                 validateNonFedoraMethods(pid, fc, errors);
@@ -88,9 +82,15 @@ public class RepositoryIntegrationTest {
             List<String> collectionRootPids = EADIngest.getSubjects(fc, o.eadRootCModel(), EADIngest.HAS_MODEL_PREDICATE);
             for (String cpid : collectionRootPids) {
                 validateComponentAndChildren(fc, cpid, "  ", o, errors);
-                for (String marcPid : EADIngest.getObjects(fc,  cpid, o.hasMarc())) {
+                List<String> marcPids = !o.isInverted(EADOntology.Relationship.HAS_MARC) 
+                        ? EADIngest.getObjects(fc, cpid, o.getRelationship(EADOntology.Relationship.HAS_MARC)) 
+                        : EADIngest.getSubjects(fc, cpid, o.getInverseRelationship(EADOntology.Relationship.HAS_MARC)); 
+                for (String marcPid : marcPids) {
                     validateNonFedoraMethods(marcPid, fc, errors);
-                    for (String containerPid : EADIngest.getObjects(fc,  marcPid, o.definesContainer())) {
+                    List<String> containerPids = !o.isInverted(EADOntology.Relationship.DEFINES_CONTAINER) 
+                            ? EADIngest.getObjects(fc,  marcPid, o.getRelationship(EADOntology.Relationship.DEFINES_CONTAINER)) 
+                            : EADIngest.getSubjects(fc,  marcPid, o.getInverseRelationship(EADOntology.Relationship.DEFINES_CONTAINER));
+                    for (String containerPid : containerPids) {
                         validateNonFedoraMethods(containerPid, fc, errors);
                     }
                 }
@@ -106,7 +106,10 @@ public class RepositoryIntegrationTest {
     
     public static void validateComponentAndChildren(FedoraClient fc, String parentPid, String indent, EADOntology o, StringBuffer errors) throws Exception {
         validateNonFedoraMethods(parentPid, fc, errors);
-        for (String partPid : EADIngest.getOrderedParts(fc, parentPid, o.isPartOf(), o.follows())) {
+        if (o.isInverted(EADOntology.Relationship.IS_PART_OF) || o.isInverted(EADOntology.Relationship.FOLLOWS)) {
+            throw new RuntimeException("getOrderedParts does not support inverted relationships!");
+        }
+        for (String partPid : EADIngest.getOrderedParts(fc, parentPid, o.getRelationship(EADOntology.Relationship.IS_PART_OF), o.getRelationship(EADOntology.Relationship.FOLLOWS))) {
             System.out.println(indent + "component --> " + partPid);
             validateComponentAndChildren(fc, partPid, indent + "  ", o, errors);
         }
@@ -151,9 +154,9 @@ public class RepositoryIntegrationTest {
         EADOntology o = new EADOntology(p);
         
         newlyIngestedEad = new ArrayList<EADIngest>();
-        for (EADIngest i : EADIngest.getRecognizedEADIngests(o)) {
-            if (!i.exists(fc)) {
-                i.buildFedoraObjects(fc);
+        for (EADIngest i : EADIngest.getRecognizedEADIngests(o, fc)) {
+            if (!i.exists()) {
+                i.buildFedoraObjects();
                 newlyIngestedEad.add(i);
             }
         }
@@ -177,7 +180,7 @@ public class RepositoryIntegrationTest {
         
         for (EADIngest i : newlyIngestedEad) {
             try {
-                i.purgeFedoraObjects(fc);
+                i.purgeFedoraObjects();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

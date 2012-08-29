@@ -10,7 +10,9 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.ByteArrayPartSource;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
@@ -44,6 +46,21 @@ public class PostSolrDocument {
             post.releaseConnection();
         }
         
+    }
+    
+    public static void commit(String updateUrl) throws HttpException, IOException {
+        String url = updateUrl + "?stream.body=%3Ccommit/%3E";
+        GetMethod get = new GetMethod(url);
+        try {
+            HttpClient client = new HttpClient();
+            client.executeMethod(get);
+            int status = get.getStatusCode();
+            if (status != HttpStatus.SC_OK) {
+                throw new RuntimeException("REST action \"" + url + "\" failed: " + get.getStatusLine());
+            }
+        } finally {
+            get.releaseConnection();
+        }
     }
     
     public static void writeStreamToStream(InputStream is, OutputStream os) throws IOException {

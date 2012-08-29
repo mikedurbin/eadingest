@@ -9,34 +9,32 @@ import java.util.Properties;
  */
 public class EADOntology {
 
+    public enum Relationship {
+        HAS_MODEL,
+        IS_PART_OF,
+        FOLLOWS,
+        HAS_MARC,
+        DEFINES_CONTAINER,
+        IS_CONTAINED_WITHIN,
+        IS_PLACEHOLDER_FOR;
+    };
+    
     private Properties p;
     
     public EADOntology(Properties configuration) {
         p = configuration;
     }
-    
-    public String hasModel() {
-        return p.getProperty("hasModel-relationship");
+
+    public boolean isInverted(Relationship relationship) {
+        return p.containsKey(relationship.name() + "-relationship-inverted");
     }
     
-    public String isPartOf() {
-        return p.getProperty("isPartOf-relationship");
+    public String getInverseRelationship(Relationship relationship) {
+        return p.getProperty(relationship.name() + "-relationship-inverted");
     }
     
-    public String follows() {
-        return p.getProperty("follows-relationship");
-    }
-    
-    public String hasMarc() {
-        return p.getProperty("hasMarc-relationship");
-    }
-    
-    public String definesContainer() {
-        return p.getProperty("definesContainer-relationship");
-    }
-    
-    public String isContainedWithin() {
-        return p.getProperty("isContainedWithin-relationship");
+    public String getRelationship(Relationship relationship) {
+        return p.getProperty(relationship.name() + "-relationship");
     }
     
     public String collectionCModel() {
@@ -45,6 +43,10 @@ public class EADOntology {
     
     public String componentCModel() {
         return p.getProperty("component-cmodel");
+    }
+    
+    public String logicalItemCModel() {
+        return p.getProperty("logicalItem-cmodel");
     }
     
     public String eadRootCModel() {

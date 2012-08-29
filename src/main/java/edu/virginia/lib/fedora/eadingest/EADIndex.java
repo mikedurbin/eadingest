@@ -15,7 +15,7 @@ import edu.virginia.lib.fedora.eadingest.container.AnalyzeContainerInformation;
  */
 public class EADIndex {
 
-    public static String SERVICE_PID = "sdef:indexable";
+    public static String SERVICE_PID = "uva-lib:indexableSDef";
     public static String SERVICE_METHOD = "getIndexingMetadata";
     
     public static void main(String[] args) throws Exception {
@@ -23,14 +23,12 @@ public class EADIndex {
         p.load(EADIndex.class.getClassLoader().getResourceAsStream("config/fedora-test.properties"));
         FedoraClient fc = new FedoraClient(new FedoraCredentials(p.getProperty("fedora-url"), p.getProperty("fedora-username"), p.getProperty("fedora-password")));
 
-        Properties solrP = new Properties();
-        solrP.load(PostSolrDocument.class.getClassLoader().getResourceAsStream("config/solr.properties"));
-        
         p = new Properties();
         p.load(AnalyzeContainerInformation.class.getClassLoader().getResourceAsStream("config/ontology.properties"));
         EADOntology o = new EADOntology(p);
         
-        
+        Properties solrP = new Properties();
+        solrP.load(PostSolrDocument.class.getClassLoader().getResourceAsStream("config/solr.properties"));
         String updateUrl = solrP.getProperty("solr-update-url");
         boolean dryRun = solrP.containsKey("dry-run") && solrP.getProperty("dry-run").equals("true");
         String filterPid = solrP.getProperty("filter-pid");
@@ -44,22 +42,35 @@ public class EADIndex {
                 if (!dryRun) {
                     PostSolrDocument.indexPid(fc, cpid, updateUrl, SERVICE_PID, SERVICE_METHOD);
                 }
-                for (String marcPid : EADIngest.getObjects(fc,  cpid, o.hasMarc())) {
+                List<String> marcPids = !o.isInverted(EADOntology.Relationship.HAS_MARC) 
+                        ? EADIngest.getObjects(fc, cpid, o.getRelationship(EADOntology.Relationship.HAS_MARC)) 
+                        : EADIngest.getSubjects(fc, cpid, o.getInverseRelationship(EADOntology.Relationship.HAS_MARC));
+                for (String marcPid : marcPids) {
                     System.out.println("    " + "marc --> " + marcPid);
-                    for (String containerPid : EADIngest.getObjects(fc,  marcPid, o.definesContainer())) {
+                    List<String> containerPids = !o.isInverted(EADOntology.Relationship.DEFINES_CONTAINER) 
+                            ? EADIngest.getObjects(fc,  marcPid, o.getRelationship(EADOntology.Relationship.DEFINES_CONTAINER)) 
+                            : EADIngest.getSubjects(fc,  marcPid, o.getInverseRelationship(EADOntology.Relationship.DEFINES_CONTAINER));
+                    for (String containerPid : containerPids) {
                         System.out.println("      " + "container --> " + containerPid);
                     }
     
                 }
                 printParts(fc, cpid, "  ", dryRun, updateUrl, o);
+            } else {
+                System.out.println("  " + cpid + " (skipped)");
             }
         }
-        
+        if (!dryRun) {
+            PostSolrDocument.commit(updateUrl);
+        }
         
     }
     
     public static void printParts(FedoraClient fc, String parentPid, String indent, boolean dryRun, String updateUrl, EADOntology o) throws Exception {
-        for (String partPid : EADIngest.getOrderedParts(fc, parentPid, o.isPartOf(), o.follows())) {
+        if (o.isInverted(EADOntology.Relationship.IS_PART_OF) || o.isInverted(EADOntology.Relationship.FOLLOWS)) {
+            throw new RuntimeException("getOrderedParts does not support inverted relationships!");
+        }
+        for (String partPid : EADIngest.getOrderedParts(fc, parentPid, o.getRelationship(EADOntology.Relationship.IS_PART_OF), o.getRelationship(EADOntology.Relationship.FOLLOWS))) {
             System.out.println(indent + "component --> " + partPid);
             if (!dryRun) {
                 PostSolrDocument.indexPid(fc, partPid, updateUrl, SERVICE_PID, SERVICE_METHOD);

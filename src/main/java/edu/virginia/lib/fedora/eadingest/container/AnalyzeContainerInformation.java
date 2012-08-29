@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -53,10 +54,6 @@ public class AnalyzeContainerInformation {
             a.printSummary();
         } else if (args[1].equals("link")) {
             a.addLinks();
-        } else if (args[1].equals("fix")) {
-            // unadvertized feature that fixes inverted relationships
-            // created by obsolete versions of this software
-            a.fixContainers();
         } else {
             System.out.println("\nUnrecognized parameter: \"" + args[1] + "\"");
         }
@@ -90,9 +87,15 @@ public class AnalyzeContainerInformation {
         
         boxToPidMap = new HashMap<String, String>();
         System.out.println(collectionPid);
-        for (String marcPid : EADIngest.getObjects(fc,  collectionPid, o.hasMarc())) {
+        List<String> marcPids = !o.isInverted(EADOntology.Relationship.HAS_MARC) 
+                ? EADIngest.getObjects(fc, collectionPid, o.getRelationship(EADOntology.Relationship.HAS_MARC)) 
+                : EADIngest.getSubjects(fc, collectionPid, o.getInverseRelationship(EADOntology.Relationship.HAS_MARC));
+        for (String marcPid : marcPids) {
             System.out.println("  marc (" + marcPid + ")");
-            for (String containerPid : EADIngest.getObjects(fc,  marcPid, o.definesContainer())) {
+            List<String> containerPids = !o.isInverted(EADOntology.Relationship.DEFINES_CONTAINER) 
+                    ? EADIngest.getObjects(fc,  marcPid, o.getRelationship(EADOntology.Relationship.DEFINES_CONTAINER)) 
+                    : EADIngest.getSubjects(fc,  marcPid, o.getInverseRelationship(EADOntology.Relationship.DEFINES_CONTAINER));
+            for (String containerPid : containerPids) {
                 Document doc = parser.parse(FedoraClient.getDatastreamDissemination(containerPid, "descMetadata").execute(fc).getEntityInputStream());
                 String id = (String) xpath.evaluate("container/callNumber", doc, XPathConstants.STRING);
                 System.out.println("    " + id + " --> " + containerPid);
@@ -110,27 +113,18 @@ public class AnalyzeContainerInformation {
                 if (addLinks) {
                     for (String h : r.getCannonicalContainerIdentifier(callNumber, boxToPidMap.keySet())) {
                         System.out.println(partPid + " is contained in " + h + " (" + boxToPidMap.get(h) + ")");
-                        FedoraClient.addRelationship(partPid).object("info:fedora/" + boxToPidMap.get(h)).predicate(o.isContainedWithin()).execute(fc);
-                        System.out.println(" ... added link: " + partPid + " --" + o.isContainedWithin() + "--> " + boxToPidMap.get(h));
+                        if (!o.isInverted(EADOntology.Relationship.IS_CONTAINED_WITHIN)) {
+                            FedoraClient.addRelationship(partPid).object("info:fedora/" + boxToPidMap.get(h)).predicate(o.getRelationship(EADOntology.Relationship.IS_CONTAINED_WITHIN)).execute(fc);
+                            System.out.println(" ... added link: " + partPid + " --" + o.getRelationship(EADOntology.Relationship.IS_CONTAINED_WITHIN) + "--> " + boxToPidMap.get(h));
+                        } else {
+                            FedoraClient.addRelationship(boxToPidMap.get(h)).object("info:fedora/" + partPid).predicate(o.getInverseRelationship(EADOntology.Relationship.IS_CONTAINED_WITHIN)).execute(fc);
+                            System.out.println(" ... added link: " + boxToPidMap.get(h) + " --" + o.getInverseRelationship(EADOntology.Relationship.IS_CONTAINED_WITHIN) + "--> " + partPid);
+                        }
                     }
                 }
                 referencedBoxes.add(callNumber);
             }
             visitNodes(fc, partPid, indent + "  ", addLinks);
-        }
-    }
-    
-    public void fixContainers() throws Exception {
-        for (String marcPid : EADIngest.getSubjects(fc,  collectionPid, o.hasMarc())) {
-            for (String containerPid : EADIngest.getSubjects(fc,  marcPid, o.isContainedWithin())) {
-                // add the relationship from the marc record to the container
-                FedoraClient.addRelationship(marcPid).object("info:fedora/" + containerPid).predicate(o.definesContainer()).execute(fc);
-
-                // remove the relationship from the container to the marc record
-                FedoraClient.purgeRelationship(containerPid).object("info:fedora/" + marcPid).predicate(o.isContainedWithin()).execute(fc);
-                
-                System.out.println("Reversed relationship between " + marcPid + " (marc) <-- " + containerPid + " (container)");
-            }
         }
     }
     

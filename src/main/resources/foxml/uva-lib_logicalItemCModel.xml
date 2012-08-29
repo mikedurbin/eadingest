@@ -27,6 +27,9 @@
           xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
           <rdf:Description rdf:about="info:fedora/uva-lib:logicalItemCModel">
             <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ContentModel-3.0"/>
+            <fedora-model:hasService rdf:resource="info:fedora/uva-lib:indexableSDef"/>
+            <fedora-model:hasService rdf:resource="info:fedora/uva-lib:hierarchicalMetadataSDef"/>
+            <fedora-model:hasService rdf:resource="info:fedora/uva-lib:logicalItemDescMetadataSDef"/>
           </rdf:Description>
         </rdf:RDF>
       </foxml:xmlContent>

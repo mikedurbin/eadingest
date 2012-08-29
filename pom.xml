@@ -5,7 +5,7 @@
 
   <groupId>edu.virginia.lib.fedora</groupId>
   <artifactId>eadingest</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>eadingest</name>
@@ -23,6 +23,7 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
+            <version>1.2</version>
             <executions>
               <execution>
                 <phase>compile</phase>
@@ -48,6 +49,7 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
+            <version>1.2</version>
             <executions>
               <execution>
                 <phase>compile</phase>
@@ -73,6 +75,7 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
+            <version>1.2</version>
             <executions>
               <execution>
                 <phase>compile</phase>

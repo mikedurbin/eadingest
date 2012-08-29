@@ -45,6 +45,7 @@ import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
 
 import edu.virginia.lib.fedora.eadingest.container.AnalyzeContainerInformation;
+import edu.virginia.lib.fedora.eadingest.pidmapping.PidMapping;
 
 /**
  * Test code to ingest XML content into a local fedora repository.
@@ -85,14 +86,14 @@ public class EADIngest {
         }
         
         // ingest or purge the EAD document objects
-        for (EADIngest i : getRecognizedEADIngests(o)) {
+        for (EADIngest i : getRecognizedEADIngests(o, fc)) {
             if (purge) {
-                if (i.exists(fc)) {
-                    i.purgeFedoraObjects(fc);
+                if (i.exists()) {
+                    i.purgeFedoraObjects();
                 }
             } else {
-                if (!i.exists(fc)) {
-                    i.buildFedoraObjects(fc);
+                if (!i.exists()) {
+                    i.buildFedoraObjects();
                 } else {
                     System.out.println("Collection already exists.");
                 }
@@ -101,7 +102,7 @@ public class EADIngest {
         
     }
 
-    public static List<EADIngest> getRecognizedEADIngests(EADOntology o) throws Exception {
+    public static List<EADIngest> getRecognizedEADIngests(EADOntology o, FedoraClient fc) throws Exception {
         List<EADIngest> eadIngests = new ArrayList<EADIngest>();
         
         Properties catalogP = new Properties();
@@ -111,48 +112,34 @@ public class EADIngest {
         // Papers of John Dos Passos
         URL url = EADIngest.class.getClassLoader().getResource("ead/viu01215.xml");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u3523359" }, catalogUrl, o));
+            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u3523359" }, catalogUrl, o, fc));
         }
         
         // Papers of Dr James Carmichael
         url = EADIngest.class.getClassLoader().getResource("ead/viu01265.xml");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u2762707" }, catalogUrl, o));
+            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u2762707" }, catalogUrl, o, fc));
         }
         
         // Church
         url = EADIngest.class.getClassLoader().getResource("ead/viu00003.xml");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u2525293", "u4327007", "u4293731" }, catalogUrl, o));
+            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u2525293", "u4327007", "u4293731" }, catalogUrl, o, fc));
         }
         
         // Holsinger
         url = EADIngest.class.getClassLoader().getResource("ead/viu02465.xml");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] {"u2091463", "u2091469", "u3686913", "u1909107", "u2316160" }, catalogUrl, o));
+            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] {"u2091463", "u2091469", "u3686913", "u1909107", "u2316160" }, catalogUrl, o, fc));
         }
         
         // Walter Reed Yellow Fever
         url = EADIngest.class.getClassLoader().getResource("ead/viuh00010.xml");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u3653257" }, catalogUrl, o));
+            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u3653257" }, catalogUrl, o, fc));
         }
         
         return eadIngests;
-    }
-    
-    /**
-     * Prints the structure of the parsed EAD file from the
-     * EADIngest object to the standard output stream.
-     */
-    public static void printStructure(EADIngest i, Element el) throws Exception {
-        System.out.println(el == null ? "root" : el.getNodeName());
-        if (el != null) {
-            System.out.println(getXMLDocument(i.getArchivalComponentMetadata(el)));
-        }
-        for (Element c : i.listArchivalComponents(el)) {
-            printStructure(i, c);
-        }
     }
     
     /**
@@ -171,6 +158,8 @@ public class EADIngest {
         t.transform(source, sResult);
         return baos.toString("UTF-8");
     }
+    
+    private FedoraClient fc;
     
     private EADOntology o;
     
@@ -202,9 +191,12 @@ public class EADIngest {
      */
     private String id;
     
-    public EADIngest(File file, String[] marcRecordIds, String catalogUrl, EADOntology ontology) throws Exception {
+    private PidMapping pidMapping;
+    
+    public EADIngest(File file, String[] marcRecordIds, String catalogUrl, EADOntology ontology, FedoraClient fc) throws Exception {
         this.catalogUrl = catalogUrl;
         o = ontology;
+        this.fc = fc;
         DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
         f.setNamespaceAware(false);
         eadDoc = f.newDocumentBuilder().parse(file);
@@ -232,10 +224,17 @@ public class EADIngest {
         holdingTransform = template.newTransformer();
         
         id = file.getName().replace(".xml", "");
-        
     }
     
-    public boolean exists(FedoraClient fc) throws Exception {
+    public void setPidMapping(PidMapping p) {
+        pidMapping = p;
+    }
+    
+    public String getCollectionId() {
+        return id;
+    }
+    
+    public boolean exists() throws Exception {
         return doesObjectExist(fc, id);
     }
 
@@ -304,52 +303,79 @@ public class EADIngest {
      * this finding aid.  The id is assigned to the object for the purpose
      * of later removing or updating that object.
      */
-    public void buildFedoraObjects(FedoraClient fc) throws Exception {
-        if (doesObjectExist(fc, id)) {
-            throw new IllegalStateException("The object already exists!");
+    public void buildFedoraObjects() throws Exception {
+        // create the object
+        String pid = pidMapping != null ? pidMapping.getPidForElement(getCollectionMetadata().getDocumentElement()) : null;
+        if (pid != null) {
+            pid = FedoraClient.ingest(pid).execute(fc).getPid();
         } else {
-            // create the object
-            String pid = FedoraClient.ingest().execute(fc).getPid();
-            System.out.println("Created " + pid + " (collection object)");
-                        
-            // add the ead fragment
-            FedoraClient.addDatastream(pid, o.eadRootDSID()).content(getXMLDocument(getCollectionMetadata())).controlGroup("M").mimeType("text/xml").execute(fc);
-            
-            // add specified ID to the DC datastream
-            FedoraClient.addDatastream(pid, "DC").content(getXMLDocument(new DCRecord(FedoraClient.getDatastreamDissemination(pid, "DC").execute(fc).getEntityInputStream()).addIdentifier(id).getDocument())).execute(fc);
-            
-            // add the content models
-            FedoraClient.addRelationship(pid).object("info:fedora/" + o.collectionCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
-            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadRootCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
-            
-            // create and add the marc record
-            for (int i = 0; i < marcXmlDocs.length; i ++) {
-                String marcPid = FedoraClient.ingest().execute(fc).getPid();
-                System.out.println("Created " + marcPid + " (marc record)");
+            pid = FedoraClient.ingest().execute(fc).getPid();
+        }
+        System.out.println("Created " + pid + " (collection object)");
                     
-                FedoraClient.addDatastream(marcPid, "DC").content(getXMLDocument(new DCRecord(FedoraClient.getDatastreamDissemination(marcPid, "DC").execute(fc).getEntityInputStream()).addIdentifier(marcIds[i]).getDocument())).execute(fc);
-                FedoraClient.addDatastream(marcPid, o.marcDSID()).content(getXMLDocument(marcXmlDocs[i])).controlGroup("M").execute(fc);
-                FedoraClient.addRelationship(pid).object("info:fedora/" + marcPid).predicate(o.hasMarc()).execute(fc);
+        // add the ead fragment
+        FedoraClient.addDatastream(pid, o.eadRootDSID()).content(getXMLDocument(getCollectionMetadata())).controlGroup("M").mimeType("text/xml").execute(fc);
+        
+        // add specified ID to the DC datastream
+        FedoraClient.addDatastream(pid, "DC").content(getXMLDocument(new DCRecord(FedoraClient.getDatastreamDissemination(pid, "DC").execute(fc).getEntityInputStream()).addIdentifier(id).getDocument())).execute(fc);
+        
+        // add the content models
+        FedoraClient.addRelationship(pid).object("info:fedora/" + o.collectionCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+        FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadRootCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+        
+        // create and add the marc record
+        for (int i = 0; i < marcXmlDocs.length; i ++) {
+            Document marcDoc = marcXmlDocs[i];
+            String marcPid = pidMapping != null ? pidMapping.getPidForElement(marcDoc.getDocumentElement()) : null;
+            if (marcPid != null) {
+                marcPid = FedoraClient.ingest(marcPid).execute(fc).getPid();
+            } else {
+                marcPid = FedoraClient.ingest().execute(fc).getPid();
+            }
+            System.out.println("Created " + marcPid + " (marc record)");
                 
-                // pull the firehose records and create and add any containers
-                addOrUpdateHoldingRecords(marcPid, marcIds[i], fc);
+            FedoraClient.addDatastream(marcPid, "DC").content(getXMLDocument(new DCRecord(FedoraClient.getDatastreamDissemination(marcPid, "DC").execute(fc).getEntityInputStream()).addIdentifier(marcIds[i]).getDocument())).execute(fc);
+            FedoraClient.addDatastream(marcPid, o.marcDSID()).content(getXMLDocument(marcDoc)).controlGroup("M").execute(fc);
+            if (!o.isInverted(EADOntology.Relationship.HAS_MARC)) {
+                // add the relationship from the collection object to the marc object
+                FedoraClient.addRelationship(pid).object("info:fedora/" + marcPid).predicate(o.getRelationship(EADOntology.Relationship.HAS_MARC)).execute(fc);
+            } else {
+                // add the relationship from the marc object to the collection object
+                FedoraClient.addRelationship(marcPid).object("info:fedora/" + pid).predicate(o.getInverseRelationship(EADOntology.Relationship.HAS_MARC)).execute(fc);
             }
             
-            // add all the children
-            String previousPid = null;
-            for (Element c : listArchivalComponents(null)) {
-                previousPid = addNode(fc, pid, c, previousPid);
-            }
+            // add the content model
+            FedoraClient.addRelationship(marcPid).object("info:fedora/" + o.marcCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            
+            // pull the firehose records and create and add any containers
+            addOrUpdateHoldingRecords(marcPid, marcIds[i]);
+        }
+        
+        // add all the children
+        String previousPid = null;
+        for (Element c : listArchivalComponents(null)) {
+            previousPid = addNode(fc, pid, c, previousPid);
         }
     }
     
     private String addNode(FedoraClient fc, String parentPid, Element el, String previousItemPid) throws Exception{
         // create the object
-        String pid = FedoraClient.ingest().execute(fc).getPid();
+        String pid = null;
+        if (pidMapping != null && pidMapping.getPidForElement(el) != null) {
+            pid = FedoraClient.ingest(pidMapping.getPidForElement(el)).execute(fc).getPid();
+        } else {
+            pid = FedoraClient.ingest().execute(fc).getPid();
+        }
         System.out.println("Created " + pid + " (" + el.getNodeName() + ")");
 
-        // add the relationship to the parent
-        FedoraClient.addRelationship(pid).object("info:fedora/" + parentPid).predicate(o.isPartOf()).execute(fc);
+        if (!o.isInverted(EADOntology.Relationship.IS_PART_OF)) {
+            // add the relationship from the part to the whole
+            FedoraClient.addRelationship(pid).object("info:fedora/" + parentPid).predicate(o.getRelationship(EADOntology.Relationship.IS_PART_OF)).execute(fc);
+        } else {
+            // add the relationship from the whole to the part
+            FedoraClient.addRelationship(parentPid).object("info:fedora/" + pid).predicate(o.getInverseRelationship(EADOntology.Relationship.IS_PART_OF)).execute(fc);
+
+        }
         
         // add the ead fragment
         FedoraClient.addDatastream(pid, o.eadComponentDSID()).content(getXMLDocument(getArchivalComponentMetadata(el))).controlGroup("M").mimeType("text/xml").execute(fc);
@@ -358,7 +384,13 @@ public class EADIngest {
         FedoraClient.addRelationship(pid).object("info:fedora/" + o.componentCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
         FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadComponentCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
         if (previousItemPid != null) {
-            FedoraClient.addRelationship(pid).object("info:fedora/" + previousItemPid).predicate(o.follows()).execute(fc);
+            if (!o.isInverted(EADOntology.Relationship.FOLLOWS)) {
+                // add the relationship from the follower to the followee
+                FedoraClient.addRelationship(pid).object("info:fedora/" + previousItemPid).predicate(o.getRelationship(EADOntology.Relationship.FOLLOWS)).execute(fc);
+            } else {
+                // add the relationship from the followee to the follower
+                FedoraClient.addRelationship(previousItemPid).object("info:fedora/" + pid).predicate(o.getInverseRelationship(EADOntology.Relationship.FOLLOWS)).execute(fc);
+            }
         }
         
         // add all the children
@@ -372,32 +404,115 @@ public class EADIngest {
     /**
      * Purges the fedora objects that represent this finding aid.
      */
-    public void purgeFedoraObjects(FedoraClient fc) throws Exception {
+    public void purgeFedoraObjects() throws Exception {
         for (String pid : lookupObjectsById(fc, id)) {
-            purgePidAndParts(fc, pid);
+            purgePidAndParts(pid); 
         }
     }
     
-    private void purgePidAndParts(FedoraClient fc, String pid) throws Exception {
-        if (doesObjectExist(fc, pid)) {
-            System.out.println("Purging " + pid + "...");
-            for (String childPid : getSubjects(fc, pid, o.isPartOf())) {
-                purgePidAndParts(fc, childPid);
+    private void purgePidAndParts(String pid) throws Exception {
+        System.out.println("Purging " + pid + "...");
+        try {
+            if (o.isInverted(EADOntology.Relationship.IS_PART_OF)) {
+                for (String childPid : getObjects(fc, pid, o.getInverseRelationship(EADOntology.Relationship.IS_PART_OF))) {
+                    purgePidAndParts(childPid);
+                }
+            } else {
+                for (String childPid : getSubjects(fc, pid, o.getRelationship(EADOntology.Relationship.IS_PART_OF))) {
+                    purgePidAndParts(childPid);
+                }
             }
-            for (String childPid : getObjects(fc, pid, o.hasMarc())) {
-                purgePidAndParts(fc, childPid);
+            if (o.isInverted(EADOntology.Relationship.HAS_MARC)) {
+                for (String childPid : getSubjects(fc, pid, o.getInverseRelationship(EADOntology.Relationship.HAS_MARC))) {
+                    purgePidAndParts(childPid);
+                }
+            } else {
+                for (String childPid : getObjects(fc, pid, o.getRelationship(EADOntology.Relationship.HAS_MARC))) {
+                    purgePidAndParts(childPid);
+                }
             }
+            /*
+            if (o.isInverted(EADOntology.Relationship.IS_CONTAINED_WITHIN)) {
+                for (String childPid : getSubjects(fc, pid, o.getInverseRelationship(EADOntology.Relationship.IS_CONTAINED_WITHIN))) {
+                    purgePidAndParts(childPid);
+                }
+            } else {
+                for (String childPid : getObjects(fc, pid, o.getRelationship(EADOntology.Relationship.IS_CONTAINED_WITHIN))) {
+                    purgePidAndParts(childPid);
+                }
+            }
+            */
             
-            for (String childPid : getObjects(fc, pid, o.isContainedWithin())) {
-                purgePidAndParts(fc, childPid);
-            }
-            
-            for (String childPid : getObjects(fc, pid, o.definesContainer())) {
-                purgePidAndParts(fc, childPid);
+            if (o.isInverted(EADOntology.Relationship.DEFINES_CONTAINER)) {
+                for (String childPid : getSubjects(fc, pid, o.getInverseRelationship(EADOntology.Relationship.DEFINES_CONTAINER))) {
+                    purgePidAndParts(childPid);
+                }
+            } else {
+                for (String childPid : getObjects(fc, pid, o.getRelationship(EADOntology.Relationship.DEFINES_CONTAINER))) {
+                    purgePidAndParts(childPid);
+                }
             }
             FedoraClient.purgeObject(pid).execute(fc);
+        } catch (FedoraClientException ex) {
+            System.err.println("Unable to purge " + pid + "! (" + ex.getMessage() + ")");
         }
     }
+    
+    public void testPidMapping() throws Exception {
+        if (pidMapping == null) {
+            throw new IllegalStateException("You must invoke setPidMapping() before testPidMapping()!");
+        }
+        String pid = pidMapping.getPidForElement(getCollectionMetadata().getDocumentElement());
+        System.out.println("Found " + pid + " (collection)");
+
+        for (int i = 0; i < marcXmlDocs.length; i ++) {
+            Document marcDoc = marcXmlDocs[i];
+            String marcPid = pidMapping.getPidForElement(marcDoc.getDocumentElement());
+            System.out.println("Found " + marcPid + " (marc)");
+            testHoldingRecords(marcPid, marcIds[i]);
+        }
+        
+        // test all the children
+        String previousPid = null;
+        for (Element c : listArchivalComponents(null)) {
+            previousPid = testNode(fc, pid, c, previousPid);
+        }
+    }
+    
+    public void testHoldingRecords(String marcRecordPid, String marcRecordId) throws Exception {
+        // pull the holdings information from firehose
+        URL url = new URL(catalogUrl + marcRecordId + "/firehose");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(15000);
+        conn.setReadTimeout(15000);
+        DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
+        f.setNamespaceAware(false);
+        Document firehoseDoc = f.newDocumentBuilder().parse(conn.getInputStream());
+        
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        NodeList holdingNl = (NodeList) xpath.evaluate("/catalogItem/holding", firehoseDoc, XPathConstants.NODESET);
+        for (int i = 0; i < holdingNl.getLength(); i ++) {
+            Element holdingEl = (Element) holdingNl.item(i);
+            Document containerDoc = getHoldingContainerMetadata(holdingEl);
+            System.out.println("Found " + pidMapping.getPidForElement(containerDoc.getDocumentElement()) + " (container)");
+        }
+        
+    }
+    
+    private String testNode(FedoraClient fc, String parentPid, Element el, String previousItemPid) throws Exception{
+        // create the object
+        String pid = pidMapping.getPidForElement(el);
+        System.out.println("Found " + pid + " (" + el.getNodeName() + ")");
+
+        // test all the children
+        String previousPid = null;
+        for (Element c : listArchivalComponents(el)) {
+            previousPid = testNode(fc, pid, c, previousPid);
+        }
+        return pid;
+    }
+    
+    
     
     public Document getCollectionMetadata() throws TransformerException, ParserConfigurationException {
         Document result = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
@@ -426,7 +541,7 @@ public class EADIngest {
         return children;
     }
     
-    public void addOrUpdateHoldingRecords(String marcRecordPid, String marcRecordId, FedoraClient fc) throws Exception {
+    public void addOrUpdateHoldingRecords(String marcRecordPid, String marcRecordId) throws Exception {
         // pull the holdings information from firehose
         URL url = new URL(catalogUrl + marcRecordId + "/firehose");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -442,60 +557,31 @@ public class EADIngest {
         NodeList holdingNl = (NodeList) xpath.evaluate("/catalogItem/holding", firehoseDoc, XPathConstants.NODESET);
         for (int i = 0; i < holdingNl.getLength(); i ++) {
             Element holdingEl = (Element) holdingNl.item(i);
-            String callNumber = (String) xpath.evaluate("@callNumber", holdingEl, XPathConstants.STRING);
-            
-            String pid = FedoraClient.ingest().execute(fc).getPid();
+            Document containerDoc = getHoldingContainerMetadata(holdingEl);
+            String pid = null;
+            if (pidMapping != null && pidMapping.getPidForElement(containerDoc.getDocumentElement()) != null) {
+                pid = FedoraClient.ingest(pidMapping.getPidForElement(containerDoc.getDocumentElement())).execute(fc).getPid();
+            } else {
+                pid = FedoraClient.ingest().execute(fc).getPid();
+            }
             System.out.println("Created " + pid + " (container)");
 
-            // add the relationship from the marc record to the container
-            FedoraClient.addRelationship(marcRecordPid).object("info:fedora/" +pid).predicate(o.definesContainer()).execute(fc);
+            if (!o.isInverted(EADOntology.Relationship.DEFINES_CONTAINER)) {
+                // add the relationship from the marc record to the container
+                FedoraClient.addRelationship(marcRecordPid).object("info:fedora/" +pid).predicate(o.getRelationship(EADOntology.Relationship.DEFINES_CONTAINER)).execute(fc);
+            } else {
+                // add the relationship from the container to the marc record
+                FedoraClient.addRelationship(pid).object("info:fedora/" + marcRecordPid).predicate(o.getInverseRelationship(EADOntology.Relationship.DEFINES_CONTAINER)).execute(fc);
+            }
             
             // add the metadata
-            FedoraClient.addDatastream(pid, o.containerDSID()).content(getXMLDocument(getHoldingContainerMetadata(holdingEl))).controlGroup("M").mimeType("text/xml").execute(fc);
+            FedoraClient.addDatastream(pid, o.containerDSID()).content(getXMLDocument(containerDoc)).controlGroup("M").mimeType("text/xml").execute(fc);
             
             // add the content model
             FedoraClient.addRelationship(pid).object("info:fedora/" + o.containerCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
         }
         
     }
-    /*
-    public List<Map<String, String>> getMarcFields(String tag) throws XPathExpressionException {
-        List<Element> children = new ArrayList<Element>();
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        xpath.setNamespaceContext(new NamespaceContext() {
-
-            public String getNamespaceURI(String prefix) {
-                if (prefix.equals("marc")) {
-                    return "http://www.loc.gov/MARC21/slim";
-                } else {
-                    return null;
-                }
-            }
-
-            public String getPrefix(String nsUri) {
-                if (nsUri.equals("http://www.loc.gov/MARC21/slim")) {
-                    return "marc";
-                } else {
-                    return null;
-                }
-            }
-
-            public Iterator getPrefixes(String nsUri) {
-                throw new UnsupportedOperationException();
-            }});
-        List<Map<String, String>> result = new ArrayList<Map<String, String>>();
-        NodeList fields = (NodeList) xpath.evaluate("marc:record/marc:datafield[@tag='" + tag + "']", marcXmlDoc, XPathConstants.NODESET);
-        for (int j = 0; j < fields.getLength(); j ++) {
-            NodeList subfields = (NodeList) xpath.evaluate("marc:subfield", fields.item(j), XPathConstants.NODESET);
-            Map<String, String> map = new HashMap<String, String>();
-            for (int i = 0; i < subfields.getLength(); i ++) {
-                map.put((String) xpath.evaluate("@code", subfields.item(i), XPathConstants.STRING), (String) xpath.evaluate("text()", subfields.item(i), XPathConstants.STRING));
-            }
-            result.add(map);
-        }
-        return result;
-    }
-    */
     
     public Document getArchivalComponentMetadata(Element ac) throws TransformerException, ParserConfigurationException {
         Document fragment = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
@@ -519,6 +605,7 @@ public class EADIngest {
     
     
     public static boolean doesObjectExist(FedoraClient fc, String id) throws NumberFormatException, IOException, FedoraClientException {
+        /* If resource index doesn't sync updates, this won't work... */
         String itqlQuery = "select $object from <#ri> where $object <dc:identifier> '" + id + "'";
         BufferedReader reader = new BufferedReader(new InputStreamReader(FedoraClient.riSearch(itqlQuery).lang("itql").format("count").execute(fc).getEntityInputStream()));
         int count = Integer.parseInt(reader.readLine());
@@ -562,7 +649,7 @@ public class EADIngest {
 
     public static List<String> getSubjects(FedoraClient fc, String object, String predicate) throws Exception {
         if (predicate == null) {
-            throw new NullPointerException("isPartOfPredicate must be set!");
+            throw new NullPointerException("predicate must not be null!");
         }
         String itqlQuery = "select $subject from <#ri> where $subject <" + predicate + "> <info:fedora/" + object + ">";
         BufferedReader reader = new BufferedReader(new InputStreamReader(FedoraClient.riSearch(itqlQuery).lang("itql").format("simple").execute(fc).getEntityInputStream()));
@@ -674,7 +761,7 @@ public class EADIngest {
             
         }
         if (!prevToNextMap.isEmpty()) {
-            throw new RuntimeException("Broken relaitonship chain after \"" + pids.get(pids.size() - 1));
+            throw new RuntimeException("Broken relationship chain after \"" + pids.get(pids.size() - 1));
         }
         return pids;
     }
