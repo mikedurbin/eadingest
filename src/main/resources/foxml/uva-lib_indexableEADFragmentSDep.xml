@@ -827,21 +827,31 @@
         <xsl:variable name="sparqlResult" select="document($lookupContainerUri)" />
         <xsl:variable name="containerUris" select="$sparqlResult/s:sparql/s:results/s:result/s:containerUri"/>
         <xsl:if test="$containerUris">
-            <!--<xsl:text>&lt;containers&gt;</xsl:text>-->
+            <xsl:variable name="containerMap">
                 <xsl:for-each select="$containerUris">
                     <xsl:variable name="containerPid" select="substring(current()/@uri, 13)" />
                     <xsl:variable name="metadata" select="document(concat('http://', $fedora-host, ':8080/fedora/objects/',$containerPid, '/datastreams/descMetadata/content'))" />
-                    <xsl:text>&lt;container&gt;</xsl:text>
-                    <xsl:text>&lt;catalogKey&gt;</xsl:text>
-                    <xsl:value-of select="$metadata/container/catalogKey" />
-                    <xsl:text>&lt;/catalogKey&gt;</xsl:text>
-                    <xsl:text>&lt;barcode&gt;</xsl:text>
-                    <xsl:value-of select="$metadata/container/barCode" />
-                    <xsl:text>&lt;/barcode&gt;</xsl:text>
-                    <xsl:text>&lt;/container&gt;</xsl:text>
-                    <!--<xsl:value-of select="unparsed-text(concat('http://', $fedora-host, ':8080/fedora/objects/',$containerPid, '/datastreams/descMetadata/content'))" />-->
+                    <container>
+                        <catalogKey><xsl:value-of select="$metadata/container/catalogKey" /></catalogKey>
+                        <barcode><xsl:value-of select="$metadata/container/barCode" /></barcode>
+                    </container>
                 </xsl:for-each>
-            <!--<xsl:text>&lt;/containers&gt;</xsl:text>-->
+            </xsl:variable>
+            <xsl:variable name="keys" select="$containerMap//container[not(catalogKey=following::catalogKey)]" />
+            <xsl:text>&lt;records&gt;</xsl:text>
+                <xsl:for-each select="$keys">
+                    <xsl:text>&lt;marc&gt;</xsl:text>
+                    <xsl:text>&lt;catalogKey&gt;</xsl:text>
+                    <xsl:value-of select="current()//catalogKey" />
+                    <xsl:text>&lt;/catalogKey&gt;</xsl:text>
+                    <xsl:for-each select="$containerMap//container[catalogKey=current()/catalogKey]/barcode">
+                        <xsl:text>&lt;barcode&gt;</xsl:text>
+                        <xsl:value-of select="current()" />
+                        <xsl:text>&lt;/barcode&gt;</xsl:text>
+                        </xsl:for-each>
+                    <xsl:text>&lt;/marc&gt;</xsl:text>
+                </xsl:for-each>
+            <xsl:text>&lt;/records&gt;</xsl:text>
         </xsl:if>
     </xsl:template>
     
