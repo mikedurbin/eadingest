@@ -34,6 +34,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -45,7 +46,11 @@ import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
 
 import edu.virginia.lib.fedora.eadingest.container.AnalyzeContainerInformation;
+import edu.virginia.lib.fedora.eadingest.multipage.PageMapper;
+import edu.virginia.lib.fedora.eadingest.multipage.RubyHashPageMapper;
+import edu.virginia.lib.fedora.eadingest.multipage.UndigitizedPageMapper;
 import edu.virginia.lib.fedora.eadingest.pidmapping.PidMapping;
+import edu.virginia.lib.fedora.eadingest.pidmapping.SpecializedPidMapping;
 
 /**
  * Test code to ingest XML content into a local fedora repository.
@@ -112,31 +117,34 @@ public class EADIngest {
         // Papers of John Dos Passos
         URL url = EADIngest.class.getClassLoader().getResource("ead/viu01215.xml");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u3523359" }, catalogUrl, o, fc));
+            EADIngest dosPassos = new EADIngest(new File(url.toURI()), new String[] { "u3523359" }, catalogUrl, o, new UndigitizedPageMapper(), fc);
+            dosPassos.setPidMapping(new SpecializedPidMapping(new File(ReplaceCollection.class.getClassLoader().getResource("ead/viu01215-pid-mapping.txt").toURI())));
+            eadIngests.add(dosPassos);
         }
         
         // Papers of Dr James Carmichael
         url = EADIngest.class.getClassLoader().getResource("ead/viu01265.xml");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u2762707" }, catalogUrl, o, fc));
+            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u2762707" }, catalogUrl, o, null, fc));
         }
         
         // Church
         url = EADIngest.class.getClassLoader().getResource("ead/viu00003.xml");
+        URL mappingUrl = EADIngest.class.getClassLoader().getResource("ead/viu00003-digitized-item-mapping.txt");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u2525293", "u4327007", "u4293731" }, catalogUrl, o, fc));
+            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u2525293", "u4327007", "u4293731" }, catalogUrl, o, new RubyHashPageMapper(FileUtils.readFileToString(new File(mappingUrl.toURI()))), fc));
         }
         
         // Holsinger
         url = EADIngest.class.getClassLoader().getResource("ead/viu02465.xml");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] {"u2091463", "u2091469", "u3686913", "u1909107", "u2316160" }, catalogUrl, o, fc));
+            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] {"u2091463", "u2091469", "u3686913", "u1909107", "u2316160" }, catalogUrl, o, null, fc));
         }
         
         // Walter Reed Yellow Fever
         url = EADIngest.class.getClassLoader().getResource("ead/viuh00010.xml");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u3653257" }, catalogUrl, o, fc));
+            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u3653257" }, catalogUrl, o, null, fc));
         }
         
         return eadIngests;
@@ -193,7 +201,9 @@ public class EADIngest {
     
     private PidMapping pidMapping;
     
-    public EADIngest(File file, String[] marcRecordIds, String catalogUrl, EADOntology ontology, FedoraClient fc) throws Exception {
+    private PageMapper pageMapper;
+    
+    public EADIngest(File file, String[] marcRecordIds, String catalogUrl, EADOntology ontology, PageMapper pm, FedoraClient fc) throws Exception {
         this.catalogUrl = catalogUrl;
         o = ontology;
         this.fc = fc;
@@ -212,6 +222,7 @@ public class EADIngest {
         }
         marcIds = marcRecordIds;
             
+        pageMapper = pm;
         
         // default transformers
         TransformerFactory tFactory = TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl",null);
@@ -320,8 +331,8 @@ public class EADIngest {
         FedoraClient.addDatastream(pid, "DC").content(getXMLDocument(new DCRecord(FedoraClient.getDatastreamDissemination(pid, "DC").execute(fc).getEntityInputStream()).addIdentifier(id).getDocument())).execute(fc);
         
         // add the content models
-        FedoraClient.addRelationship(pid).object("info:fedora/" + o.collectionCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
         FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadRootCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+        FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
         
         // create and add the marc record
         for (int i = 0; i < marcXmlDocs.length; i ++) {
@@ -377,26 +388,70 @@ public class EADIngest {
 
         }
         
-        // add the ead fragment
-        FedoraClient.addDatastream(pid, o.eadComponentDSID()).content(getXMLDocument(getArchivalComponentMetadata(el))).controlGroup("M").mimeType("text/xml").execute(fc);
+        Document acDoc  = getArchivalComponentMetadata(el);
         
-        // add the content model
-        FedoraClient.addRelationship(pid).object("info:fedora/" + o.componentCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
-        FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadComponentCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
-        if (previousItemPid != null) {
-            if (!o.isInverted(EADOntology.Relationship.FOLLOWS)) {
-                // add the relationship from the follower to the followee
-                FedoraClient.addRelationship(pid).object("info:fedora/" + previousItemPid).predicate(o.getRelationship(EADOntology.Relationship.FOLLOWS)).execute(fc);
+        XPath xpath = XPathFactory.newInstance().newXPath();
+        String level = (String) xpath.evaluate("@level", acDoc.getDocumentElement());
+        String id = (String) xpath.evaluate("@id", acDoc.getDocumentElement());
+        if ("item".equals(level)) {
+            // find or create the item
+            String itemPid = null;
+            List<String> pages = pageMapper.getDigitizedItemPagePids(id);
+            if (pages != null && !pages.isEmpty()) {
+                itemPid = findOrCreateMultipageObject(pageMapper.getDigitizedItemPagePids(id), pageMapper.getExemplar(id), getXMLDocument(acDoc));
             } else {
-                // add the relationship from the followee to the follower
-                FedoraClient.addRelationship(previousItemPid).object("info:fedora/" + pid).predicate(o.getInverseRelationship(EADOntology.Relationship.FOLLOWS)).execute(fc);
+                // add the ead fragment directly
+                FedoraClient.addDatastream(pid, o.eadComponentDSID()).content(getXMLDocument(acDoc)).controlGroup("M").mimeType("text/xml").execute(fc);
+                
             }
-        }
-        
-        // add all the children
-        String previousPid = null;
-        for (Element c : listArchivalComponents(el)) {
-            previousPid = addNode(fc, pid, c, previousPid);
+           
+            // add the content models
+            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadItemCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            
+            if (itemPid != null) {
+                // this is a placehoder
+                // add the relationship to the physical item objectand the corresponding content model
+                FedoraClient.addRelationship(pid).object("info:fedora/" + itemPid).predicate(o.getRelationship(EADOntology.Relationship.IS_PLACEHOLDER_FOR)).execute(fc);
+                FedoraClient.addRelationship(pid).object("info:fedora/" + o.metadataPlaceholderCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            } else {
+                // this is a logical item only (there is no digitized representation of the physical item)
+                // add the ead fragment and the "metadata" content model
+                FedoraClient.addDatastream(pid, o.eadComponentDSID()).content(getXMLDocument(acDoc)).controlGroup("M").mimeType("text/xml").execute(fc);
+                FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            }
+            
+            // add sequence relationship
+            if (previousItemPid != null) {
+                if (!o.isInverted(EADOntology.Relationship.FOLLOWS)) {
+                    // add the relationship from the follower to the followee
+                    FedoraClient.addRelationship(pid).object("info:fedora/" + previousItemPid).predicate(o.getRelationship(EADOntology.Relationship.FOLLOWS)).execute(fc);
+                } else {
+                    // add the relationship from the followee to the follower
+                    FedoraClient.addRelationship(previousItemPid).object("info:fedora/" + pid).predicate(o.getInverseRelationship(EADOntology.Relationship.FOLLOWS)).execute(fc);
+                }
+            }
+        } else {
+            // add the ead fragment
+            FedoraClient.addDatastream(pid, o.eadComponentDSID()).content(getXMLDocument(acDoc)).controlGroup("M").mimeType("text/xml").execute(fc);
+            
+            // add the content models
+            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadComponentCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            if (previousItemPid != null) {
+                if (!o.isInverted(EADOntology.Relationship.FOLLOWS)) {
+                    // add the relationship from the follower to the followee
+                    FedoraClient.addRelationship(pid).object("info:fedora/" + previousItemPid).predicate(o.getRelationship(EADOntology.Relationship.FOLLOWS)).execute(fc);
+                } else {
+                    // add the relationship from the followee to the follower
+                    FedoraClient.addRelationship(previousItemPid).object("info:fedora/" + pid).predicate(o.getInverseRelationship(EADOntology.Relationship.FOLLOWS)).execute(fc);
+                }
+            }
+            
+            // add all the children
+            String previousPid = null;
+            for (Element c : listArchivalComponents(el)) {
+                previousPid = addNode(fc, pid, c, previousPid);
+            }
         }
         return pid;
     }
@@ -601,6 +656,47 @@ public class EADIngest {
         Document result = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         holdingTransform.transform(new DOMSource(fragment), new DOMResult(result));
         return result;
+    }
+    
+    /**
+     * A method to locate or create the object in fedora that represents the
+     * aggregate of the multiple objects that represent the scanned or otherwise
+     * digitized pages of a physical object.
+     * 
+     * This method relies on the resource index to determine if an object already
+     * exists.  If syncupdates is not true in fedora, this method may result in
+     * the creation of additional multipage objects when called in relatively 
+     * rapid succession with the same parameters.
+     */
+    public String findOrCreateMultipageObject(List<String> pages, String exemplarPid, String descMetadata) throws Exception {
+        // look for the grouping object
+        List<String> groupingObjects = getSubjects(fc, pages.get(0), o.getRelationship(EADOntology.Relationship.HAS_DIGITAL_REPRESENTATION));
+        if (groupingObjects.size() == 1) {
+            System.out.println("found " + groupingObjects.get(0));
+            return groupingObjects.get(0);
+        } else if (groupingObjects.size() > 1) {
+            throw new RuntimeException("There are multiple objects that reference the object " + pages.get(0) + "!");
+        } else {
+            // create the grouping object
+            String pid = FedoraClient.ingest().execute(fc).getPid();
+            System.out.println("created " + pid);
+            // link to each page
+            for (String pagePid : pages) {
+                FedoraClient.addRelationship(pid).object("info:fedora/" + pagePid).predicate(o.getRelationship(EADOntology.Relationship.HAS_DIGITAL_REPRESENTATION)).execute(fc);
+                if (pagePid.equals(exemplarPid)) {
+                    FedoraClient.addRelationship(pid).object("info:fedora/" + pagePid).predicate(o.getRelationship(EADOntology.Relationship.HAS_EXEMPLAR)).execute(fc);
+                }
+            }
+            
+            // add descriptive metadata
+            FedoraClient.addDatastream(pid, o.eadItemDSID()).content(descMetadata).controlGroup("M").mimeType("text/xml").execute(fc);
+
+            // add the content model
+            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            
+            return pid;
+        }
+        
     }
     
     

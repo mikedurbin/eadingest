@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<foxml:digitalObject VERSION="1.1" PID="uva-lib:logicalItemIndexMetadataSDep" 
+<foxml:digitalObject VERSION="1.1" PID="uva-lib:indexablePlaceholderSDep" 
     xmlns:foxml="info:fedora/fedora-system:def/foxml#" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
@@ -10,7 +10,7 @@
 <foxml:datastreamVersion ID="DC1.0" LABEL="Dublin Core Record for this object" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/">
 <foxml:xmlContent>
 <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
-  <dc:identifier>uva-lib:logicalItemIndexMetadataSDep</dc:identifier>
+  <dc:identifier>uva-lib:indexablePlaceholderSDep</dc:identifier>
 </oai_dc:dc>
 </foxml:xmlContent>
 </foxml:datastreamVersion>
@@ -19,11 +19,11 @@
 <foxml:datastreamVersion ID="RELS-EXT.0" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0" MIMETYPE="application/rdf+xml">
 <foxml:xmlContent>
 <rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <rdf:Description rdf:about="info:fedora/uva-lib:logicalItemIndexMetadataSDep">
+  <rdf:Description rdf:about="info:fedora/uva-lib:indexablePlaceholderSDep">
     <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ServiceDeployment-3.0"/>
     <fedora-model:hasModel rdf:resource="info:fedora/uva-lib:documentedMappingCModel"/>
     <fedora-model:isDeploymentOf rdf:resource="info:fedora/uva-lib:indexableSDef"/>
-    <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:logicalItemCModel"/>
+    <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:eadItemCModel"/>
   </rdf:Description>
 </rdf:RDF>
 </foxml:xmlContent>
@@ -76,7 +76,7 @@
   <wsdl:binding name="binding" type="this:portType">
     <http:binding verb="GET"/>
     <wsdl:operation name="getIndexingMetadata">
-      <http:operation location="http://local.fedora.server/saxon/SaxonServlet?source=http://local.fedora.server/fedora/objects/(pid)/methods/uva-lib:logicalItemDescMetadataSDef/getDescMetadata&amp;style=http://local.fedora.server/fedora/objects/uva-lib:logicalItemIndexMetadataSDep/datastreams/XSLT/content&amp;pid=(pid)&amp;clear-stylesheet-cache=yes"/>
+      <http:operation location="http://local.fedora.server/saxon/SaxonServlet?source=http://local.fedora.server/fedora/objects/(pid)/methods/uva-lib:descMetadataSDef/getMetadataAsEADFragment&amp;style=http://local.fedora.server/fedora/objects/uva-lib:indexablePlaceholderSDep/datastreams/XSLT/content&amp;pid=(pid)"/>
       <wsdl:input>
         <http:urlReplacement/>
       </wsdl:input>

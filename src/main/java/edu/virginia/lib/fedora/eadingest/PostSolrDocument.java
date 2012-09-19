@@ -63,6 +63,21 @@ public class PostSolrDocument {
         }
     }
     
+    public static void rollback(String updateUrl) throws HttpException, IOException {
+        String url = updateUrl + "?stream.body=%3Crollback/%3E";
+        GetMethod get = new GetMethod(url);
+        try {
+            HttpClient client = new HttpClient();
+            client.executeMethod(get);
+            int status = get.getStatusCode();
+            if (status != HttpStatus.SC_OK) {
+                throw new RuntimeException("REST action \"" + url + "\" failed: " + get.getStatusLine());
+            }
+        } finally {
+            get.releaseConnection();
+        }
+    }
+    
     public static void writeStreamToStream(InputStream is, OutputStream os) throws IOException {
         ReadableByteChannel inputChannel = Channels.newChannel(is);  
         WritableByteChannel outputChannel = Channels.newChannel(os);  

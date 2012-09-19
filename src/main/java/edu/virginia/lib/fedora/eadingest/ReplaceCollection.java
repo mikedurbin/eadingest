@@ -4,10 +4,13 @@ import java.io.File;
 import java.net.URL;
 import java.util.Properties;
 
+import org.apache.commons.io.FileUtils;
+
 import com.yourmediashelf.fedora.client.FedoraClient;
 import com.yourmediashelf.fedora.client.FedoraCredentials;
 
 import edu.virginia.lib.fedora.eadingest.container.AnalyzeContainerInformation;
+import edu.virginia.lib.fedora.eadingest.multipage.RubyHashPageMapper;
 import edu.virginia.lib.fedora.eadingest.pidmapping.SpecializedPidMapping;
 import edu.virginia.lib.fedora.eadingest.pidmapping.PidMapping;
 
@@ -37,17 +40,22 @@ public class ReplaceCollection {
         p.load(AnalyzeContainerInformation.class.getClassLoader().getResourceAsStream("config/ontology.properties"));
         EADOntology newOntology = new EADOntology(p);
         
-        URL url = EADIngest.class.getClassLoader().getResource("ead/viu02465.xml");
-        String[] catalogKeys = new String[] {"u2091463", "u2091469", "u3686913", "u1909107", "u2316160"}; 
-        EADIngest original = new EADIngest(new File(url.toURI()), catalogKeys, catalogUrl, oldOntology, fc);
-        PidMapping mapping = new SpecializedPidMapping(fc, oldOntology, "uva-lib-test:4556");
+        //URL url = EADIngest.class.getClassLoader().getResource("ead/viu02465.xml");
+        //String[] catalogKeys = new String[] {"u2091463", "u2091469", "u3686913", "u1909107", "u2316160"};
+        
+        URL url = EADIngest.class.getClassLoader().getResource("ead/viu00003.xml");
+        String[] catalogKeys = new String[] { "u2525293", "u4327007", "u4293731" };
+     
+        EADIngest original = new EADIngest(new File(url.toURI()), catalogKeys, catalogUrl, oldOntology, null, fc);
+        PidMapping mapping = new SpecializedPidMapping(fc, newOntology, "uva-lib-test:7262");
+        //PidMapping mapping = new SpecializedPidMapping(fc, oldOntology, "uva-lib-test:4556");
         //PidMapping mapping = new SpecializedPidMapping(new File(ReplaceCollection.class.getClassLoader().getResource("holsinger-pid-mapping.txt").toURI()));
         
-        EADIngest updated = new EADIngest(new File(url.toURI()), catalogKeys, catalogUrl, newOntology, fc);
+        EADIngest updated = new EADIngest(new File(url.toURI()), catalogKeys, catalogUrl, newOntology, null, fc);
         updated.setPidMapping(mapping);
         updated.testPidMapping();
-        original.purgeFedoraObjects();
-        updated.buildFedoraObjects();
+        //original.purgeFedoraObjects();
+        //updated.buildFedoraObjects();
         
         
         //URL url = EADIngest.class.getClassLoader().getResource("ead/viu01215.xml");

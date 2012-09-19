@@ -155,9 +155,13 @@ public class SpecializedPidMapping implements PidMapping {
 
     
     private String getKey(String pid, String dsId, FedoraClient fc) throws ParserConfigurationException, SAXException, IOException, FedoraClientException, XPathExpressionException, TransformerException {
-        DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        Document doc = parser.parse(FedoraClient.getDatastreamDissemination(pid, dsId).execute(fc).getEntityInputStream());
-        return getKey(doc.getDocumentElement());
+        try {
+            DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = parser.parse(FedoraClient.getDatastreamDissemination(pid, dsId).execute(fc).getEntityInputStream());
+            return getKey(doc.getDocumentElement());
+        } catch (Throwable t) {
+            return pid;
+        }
     }
     
     private String getKey(Element el) throws XPathExpressionException, TransformerException {

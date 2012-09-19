@@ -33,37 +33,47 @@ public class EADIndex {
         boolean dryRun = solrP.containsKey("dry-run") && solrP.getProperty("dry-run").equals("true");
         String filterPid = solrP.getProperty("filter-pid");
         
-        // find all collections
-        List<String> collectionRootPids = EADIngest.getSubjects(fc, o.eadRootCModel(), EADIngest.HAS_MODEL_PREDICATE);
-        System.out.println(collectionRootPids.size() + " collections found");
-        for (String cpid : collectionRootPids) {
-            if (filterPid == null || filterPid.equals(cpid)) {
-                System.out.println("  " + cpid);
-                if (!dryRun) {
-                    PostSolrDocument.indexPid(fc, cpid, updateUrl, SERVICE_PID, SERVICE_METHOD);
-                }
-                List<String> marcPids = !o.isInverted(EADOntology.Relationship.HAS_MARC) 
-                        ? EADIngest.getObjects(fc, cpid, o.getRelationship(EADOntology.Relationship.HAS_MARC)) 
-                        : EADIngest.getSubjects(fc, cpid, o.getInverseRelationship(EADOntology.Relationship.HAS_MARC));
-                for (String marcPid : marcPids) {
-                    System.out.println("    " + "marc --> " + marcPid);
-                    List<String> containerPids = !o.isInverted(EADOntology.Relationship.DEFINES_CONTAINER) 
-                            ? EADIngest.getObjects(fc,  marcPid, o.getRelationship(EADOntology.Relationship.DEFINES_CONTAINER)) 
-                            : EADIngest.getSubjects(fc,  marcPid, o.getInverseRelationship(EADOntology.Relationship.DEFINES_CONTAINER));
-                    for (String containerPid : containerPids) {
-                        System.out.println("      " + "container --> " + containerPid);
+        try {
+            // find all collections
+            List<String> collectionRootPids = EADIngest.getSubjects(fc, o.eadRootCModel(), EADIngest.HAS_MODEL_PREDICATE);
+            System.out.println(collectionRootPids.size() + " collections found");
+            for (String cpid : collectionRootPids) {
+                if (filterPid == null || filterPid.equals(cpid)) {
+                    System.out.println("  " + cpid);
+                    if (!dryRun) {
+                        PostSolrDocument.indexPid(fc, cpid, updateUrl, SERVICE_PID, SERVICE_METHOD);
                     }
-    
-                }
-                printParts(fc, cpid, "  ", dryRun, updateUrl, o);
-            } else {
-                System.out.println("  " + cpid + " (skipped)");
-            }
-        }
-        if (!dryRun) {
-            PostSolrDocument.commit(updateUrl);
-        }
+                    List<String> marcPids = !o.isInverted(EADOntology.Relationship.HAS_MARC) 
+                            ? EADIngest.getObjects(fc, cpid, o.getRelationship(EADOntology.Relationship.HAS_MARC)) 
+                            : EADIngest.getSubjects(fc, cpid, o.getInverseRelationship(EADOntology.Relationship.HAS_MARC));
+                    for (String marcPid : marcPids) {
+                        System.out.println("    " + "marc --> " + marcPid);
+                        List<String> containerPids = !o.isInverted(EADOntology.Relationship.DEFINES_CONTAINER) 
+                                ? EADIngest.getObjects(fc,  marcPid, o.getRelationship(EADOntology.Relationship.DEFINES_CONTAINER)) 
+                                : EADIngest.getSubjects(fc,  marcPid, o.getInverseRelationship(EADOntology.Relationship.DEFINES_CONTAINER));
+                        for (String containerPid : containerPids) {
+                            System.out.println("      " + "container --> " + containerPid);
+                        }
         
+                    }
+                    printParts(fc, cpid, "  ", dryRun, updateUrl, o);
+                } else {
+                    System.out.println("  " + cpid + " (skipped)");
+                }
+            }
+            if (!dryRun) {
+                PostSolrDocument.commit(updateUrl);
+            }
+        } catch (Throwable t) {
+            PostSolrDocument.rollback(updateUrl);
+            if (t instanceof Exception) {
+                throw (Exception) t;
+            } else if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            } else {
+                throw new RuntimeException(t);
+            }
+        } 
     }
     
     public static void printParts(FedoraClient fc, String parentPid, String indent, boolean dryRun, String updateUrl, EADOntology o) throws Exception {

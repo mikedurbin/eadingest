@@ -16,7 +16,10 @@ public class EADOntology {
         HAS_MARC,
         DEFINES_CONTAINER,
         IS_CONTAINED_WITHIN,
-        IS_PLACEHOLDER_FOR;
+        IS_PLACEHOLDER_FOR,
+        HAS_DIGITAL_REPRESENTATION,
+        HAS_EXEMPLAR;
+        
     };
     
     private Properties p;
@@ -37,24 +40,20 @@ public class EADOntology {
         return p.getProperty(relationship.name() + "-relationship");
     }
     
-    public String collectionCModel() {
-        return p.getProperty("collection-cmodel");
-    }
-    
-    public String componentCModel() {
-        return p.getProperty("component-cmodel");
-    }
-    
-    public String logicalItemCModel() {
-        return p.getProperty("logicalItem-cmodel");
-    }
-    
     public String eadRootCModel() {
         return p.getProperty("eadRoot-cmodel");
     }
     
     public String eadComponentCModel() {
         return p.getProperty("eadComponent-cmodel");
+    }
+    
+    public String eadItemCModel() {
+        return p.getProperty("eadItem-cmodel");
+    }
+    
+    public String eadFragmentCmodel() {
+        return p.getProperty("eadMetadata-cmodel");
     }
     
     public String marcCmodel() {
@@ -65,8 +64,16 @@ public class EADOntology {
         return p.getProperty("mods-cmodel");
     }
     
+    public String metadataPlaceholderCmodel() {
+        return p.getProperty("metadataPlaceholder-cmodel");
+    }
+    
     public String containerCmodel() {
         return p.getProperty("container-cmodel");
+    }
+    
+    public String multipageCmodel() {
+        return p.getProperty("multipage-cmodel");
     }
     
     public String eadRootDSID() {
@@ -75,6 +82,10 @@ public class EADOntology {
     
     public String eadComponentDSID() {
         return p.getProperty("eadComponent-dsId");
+    }
+    
+    public String eadItemDSID() {
+        return p.getProperty("eadItem-dsId");
     }
     
     public String marcDSID() {
@@ -87,6 +98,10 @@ public class EADOntology {
     
     public String containerDSID() {
         return p.getProperty("container-dsId");
+    }
+    
+    public String multiapgeDSID() {
+        return p.getProperty("multipage-dsId");
     }
     
 }
