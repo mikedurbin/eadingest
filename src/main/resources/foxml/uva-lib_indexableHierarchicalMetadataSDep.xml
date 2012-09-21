@@ -169,8 +169,9 @@
                 The following solr fields are automatically populated:
                 <doc:ul>
                     <doc:li mapping:type="solrField" mapping:sourceXPath="$pid">id</doc:li>
-                    <doc:li mapping:type="solrField" mapping:sourceXPath="'cmodel:ead-component'">content_model_facet</doc:li>
+                    <doc:li mapping:type="solrField" mapping:sourceXPath="[the various fedora content models]">content_model_facet</doc:li>
                     <doc:li mapping:type="solrField" mapping:sourceXPath="'UVA Library Digital Repository'">source_facet</doc:li>
+                    <doc:li mapping:type="solrField" mapping:sourceXPath="'Manuscripts &amp; Rare Materials'">format_facet</doc:li>
                     <doc:li mapping:type="solrField" mapping:sourceXPath="'Special Collections'">library_facet</doc:li>
                     <doc:li mapping:type="solrField" mapping:sourceXPath="'Special Collections'">location_facet</doc:li>
                 </doc:ul>
@@ -182,6 +183,7 @@
             <doc>
                 <field name="id"><xsl:value-of select="$pid"/></field>
                 <field name="source_facet">UVA Library Digital Repository</field>
+                <field name="format_facet">Manuscripts &amp; Rare Materials</field>
                 
                 <!-- pull some information from fedora for:
                     date_received_facet 
@@ -581,7 +583,6 @@
     <doc:doc>
         <doc:desc>
             <doc:p mapping:type="solrField" mapping:sourceXPath="node()[starts-with(name(), 'c0')]/@level">hierarchy_level_facet</doc:p>
-            <doc:p mapping:type="solrField" mapping:sourceXPath="node()[starts-with(name(), 'c0')]/@level">format_facet</doc:p>
             <doc:p mapping:type="solrField" mapping:sourceXPath="'http://fedoraproxy.lib.virginia.edu/fedora' (if item is digitized)">repository_address_display</doc:p>
             <doc:p mapping:type="solrField" mapping:sourceXPath="id of the digized version of the item">digitized_item_pid_display</doc:p>
         </doc:desc>
@@ -591,7 +592,7 @@
             <xsl:comment>Matched <xsl:value-of select="name()" /></xsl:comment>
         </xsl:if>
         <field name="hierarchy_level_facet"><xsl:value-of select="@level" /></field>
-        <field name="format_facet"><xsl:value-of select="@level" /></field>
+        <!--<field name="format_facet"><xsl:value-of select="@level" /></field>-->
         
         <xsl:if test="@level='item'">
             <!-- query to see if this item has a digital representation in fedora,
@@ -618,13 +619,12 @@
         <doc:desc>
             <doc:ul>
                 <doc:li mapping:type="solrField" mapping:sourceXPath="'collection">hierarchy_level_facet</doc:li>
-                <doc:li mapping:type="solrField" mapping:sourceXPath="'Collection">format_facet</doc:li>
             </doc:ul>
         </doc:desc>
     </doc:doc>
     <xsl:template match="ead" mode="primary">
         <field name="hierarchy_level_facet">collection</field>
-        <field name="format_facet">Collection</field>
+        <!--<field name="format_facet">Collection</field>-->
     </xsl:template>   
 
     <xsl:template match="marc:record" mode="marc">
