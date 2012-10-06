@@ -148,11 +148,10 @@
     <xsl:output byte-order-mark="no" encoding="UTF-8" media-type="text/xml" xml:space="preserve" indent="yes"/>
     
     <!--<xsl:variable name="fedora-host">fedoratest01.lib.virginia.edu</xsl:variable>-->
-    <xsl:variable name="fedora-host">localhost</xsl:variable>
-    <xsl:param name="pid" />
-    <xsl:param name="debug">debug</xsl:param>
-    
-    <xsl:variable name="currentPid"><xsl:value-of select="$pid" /></xsl:variable>
+    <xsl:param name="fedora-host" required="no">localhost</xsl:param>
+    <xsl:param name="fedora-proxy" required="no">http://fedoratest01.lib.virginia.edu:8080/fedora</xsl:param>
+    <xsl:param name="pid" required="yes" />
+    <xsl:param name="debug" required="no" />
     
     <xsl:template match="*" priority="-1" mode="primary" />
     <xsl:template match="*" priority="-1" mode="subsequent" />
@@ -595,23 +594,17 @@
         <!--<field name="format_facet"><xsl:value-of select="@level" /></field>-->
         
         <xsl:if test="@level='item'">
-            <!-- query to see if this item has a digital representation in fedora,
-                if so, add a URL -->
-            <xsl:variable name="lookupDigitizedItemUri">
-                <xsl:text>http://</xsl:text><xsl:value-of select="$fedora-host" /><xsl:text>:8080/fedora/risearch?type=tuples&amp;lang=itql&amp;format=Sparql&amp;query=select%20%24object%20from%20%3C%23ri%3E%20where%20%3Cinfo%3Afedora%2F</xsl:text>
-                <xsl:value-of select="$pid" />
-                <xsl:text>%3E%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationships%23isPlaceholderFor%3E%20%24object</xsl:text>
+            <xsl:variable name="exemplarUri">
+                <xsl:call-template name="lookupDigitizedExemplar">
+                    <xsl:with-param name="itemPid" select="$pid" />
+                </xsl:call-template>
             </xsl:variable>
-            <xsl:if test="$debug">
-                <xsl:comment>Searching for the digitized item for <xsl:value-of select="$pid" />...</xsl:comment>
-            </xsl:if>
-            <xsl:variable name="sparqlResult" select="document($lookupDigitizedItemUri)" />
-            <xsl:variable name="digitizedItemUris" select="$sparqlResult/s:sparql/s:results/s:result/s:object"/>
-            <xsl:for-each select="$digitizedItemUris">
-                <xsl:variable name="digitizedItemPid" select="substring(current()/@uri, 13)" />
+            
+            <xsl:if test="$exemplarUri != ''">
+                <xsl:variable name="digitizedItemPid" select="substring($exemplarUri, 13)" />
                 <field name="digitized_item_pid_display"><xsl:value-of select="$digitizedItemPid" /></field>
-            </xsl:for-each>
-            <field name="repository_address_display">http://fedoraproxy.lib.virginia.edu/fedora</field>
+            </xsl:if>
+            <field name="repository_address_display"><xsl:value-of select="$fedora-proxy" /></field>
         </xsl:if>
     </xsl:template>
     
@@ -875,6 +868,25 @@
                 </xsl:for-each>
             <xsl:text>&lt;/records&gt;</xsl:text>
         </xsl:if>
+    </xsl:template>
+    
+    <!-- Performs a fedora resource index query that will return the object uri of the 
+        exemplar (digital representation) of the provided item if a digitized version
+        exists for that item.
+    -->
+    <xsl:template name="lookupDigitizedExemplar">
+        <xsl:param name="itemPid" required="yes" />
+        <xsl:variable name="lookupExemplars">
+            <xsl:text>http://</xsl:text><xsl:value-of select="$fedora-host" /><xsl:text>:8080/fedora/risearch?type=tuples&amp;lang=itql&amp;format=Sparql&amp;query=select%20%24exemplar%20from%20%3C%23ri%3E%20where%20%3Cinfo%3Afedora%2F</xsl:text>
+            <xsl:value-of select="$itemPid" />
+            <xsl:text>%3E%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationships%23isPlaceholderFor%3E%20%24real%20and%20%24real%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationships%23hasDigitalRepresentation%3E%20%24exemplar%20and%20%24real%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationships%23hasExemplar%3E%20%24exemplar</xsl:text>
+        </xsl:variable>
+        <xsl:if test="$debug">
+            <xsl:message terminate="no">
+                Querying for the exemplar digitized version of <xsl:value-of select="$itemPid" /> using query: <xsl:value-of select="$lookupExemplars" />
+            </xsl:message>
+        </xsl:if>
+        <xsl:value-of select="document($lookupExemplars)/s:sparql/s:results/s:result/s:exemplar/@uri" />
     </xsl:template>
     
 </xsl:stylesheet>
