@@ -149,7 +149,7 @@
     
     <!--<xsl:variable name="fedora-host">fedoratest01.lib.virginia.edu</xsl:variable>-->
     <xsl:param name="fedora-host" required="no">localhost</xsl:param>
-    <xsl:param name="fedora-proxy" required="no">http://fedoratest01.lib.virginia.edu:8080/fedora</xsl:param>
+    <xsl:param name="fedora-proxy" required="no">http://fedoraproxy.lib.virginia.edu/fedora</xsl:param>
     <xsl:param name="pid" required="yes" />
     <xsl:param name="debug" required="no" />
     
@@ -348,6 +348,7 @@
         <doc:desc>
             <doc:ul>
                 <doc:li mapping:type="solrField">main_title_display</doc:li>
+                <doc:li mapping:type="solrField">title_display</doc:li>
                 <doc:li mapping:type="solrField">title_text</doc:li>
                 <doc:li mapping:type="solrField">digital_collection_facet</doc:li>
             </doc:ul>
@@ -359,8 +360,9 @@
                 <xsl:value-of select="current()" />
             </xsl:for-each>
         </xsl:variable>
-        <field name="main_title_display" boost="2.0"><xsl:value-of select="normalize-space($title)" /></field>
-        <field name="title_text"><xsl:value-of select="normalize-space($title)"></xsl:value-of></field>
+        <field name="main_title_display"><xsl:value-of select="normalize-space($title)" /></field>
+        <field name="title_display"><xsl:value-of select="normalize-space($title)" /></field>
+        <field name="title_text" boost="2.0"><xsl:value-of select="normalize-space($title)"></xsl:value-of></field>
         <field name="digital_collection_facet"><xsl:value-of select="normalize-space($title)" /></field>
     </xsl:template>
     
@@ -422,7 +424,9 @@
             <xsl:for-each select="current()/p">
                 <xsl:variable name="p">
                     <xsl:for-each select="current()//text()">
-                        <xsl:value-of select="current()" />
+                        <xsl:text>&lt;![CDATA[</xsl:text>
+                            <xsl:value-of select="current()" />
+                        <xsl:text>]]&gt;</xsl:text>
                     </xsl:for-each>
                 </xsl:variable>
                 <xsl:text>&lt;p&gt;</xsl:text>
@@ -594,17 +598,17 @@
         <!--<field name="format_facet"><xsl:value-of select="@level" /></field>-->
         
         <xsl:if test="@level='item'">
-            <xsl:variable name="exemplarUri">
-                <xsl:call-template name="lookupDigitizedExemplar">
+            <xsl:variable name="digitizedItemUri">
+                <xsl:call-template name="lookupDigitizedObject">
                     <xsl:with-param name="itemPid" select="$pid" />
                 </xsl:call-template>
             </xsl:variable>
             
-            <xsl:if test="$exemplarUri != ''">
-                <xsl:variable name="digitizedItemPid" select="substring($exemplarUri, 13)" />
+            <xsl:if test="$digitizedItemUri != ''">
+                <xsl:variable name="digitizedItemPid" select="substring($digitizedItemUri, 13)" />
                 <field name="digitized_item_pid_display"><xsl:value-of select="$digitizedItemPid" /></field>
+                <field name="repository_address_display"><xsl:value-of select="$fedora-proxy" /></field>
             </xsl:if>
-            <field name="repository_address_display"><xsl:value-of select="$fedora-proxy" /></field>
         </xsl:if>
     </xsl:template>
     
@@ -871,8 +875,29 @@
     </xsl:template>
     
     <!-- Performs a fedora resource index query that will return the object uri of the 
+        digital representation of the provided item if a digitized version
+        exists for that item. 
+    -->
+    <xsl:template name="lookupDigitizedObject">
+        <xsl:param name="itemPid" required="yes" />
+        <xsl:variable name="lookupObject">
+            <xsl:text>http://</xsl:text><xsl:value-of select="$fedora-host" /><xsl:text>:8080/fedora/risearch?type=tuples&amp;lang=itql&amp;format=Sparql&amp;query=select%20%24real%20from%20%3C%23ri%3E%20where%20%3Cinfo%3Afedora%2F</xsl:text>
+            <xsl:value-of select="$itemPid" />
+            <xsl:text>%3E%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationships%23isPlaceholderFor%3E%20%24real</xsl:text>
+        </xsl:variable>
+        <xsl:if test="$debug">
+            <xsl:message terminate="no">
+                Querying for the digitized version of <xsl:value-of select="$itemPid" /> using query: <xsl:value-of select="$lookupObject" />
+            </xsl:message>
+        </xsl:if>
+        <xsl:value-of select="document($lookupObject)/s:sparql/s:results/s:result/s:real/@uri" />
+    </xsl:template>
+    
+    <!-- Performs a fedora resource index query that will return the object uri of the 
         exemplar (digital representation) of the provided item if a digitized version
         exists for that item.
+        
+        This template isn't currently used.
     -->
     <xsl:template name="lookupDigitizedExemplar">
         <xsl:param name="itemPid" required="yes" />
