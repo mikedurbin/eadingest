@@ -241,16 +241,16 @@
     <xsl:template match="ead">
         <collection>
             <xsl:variable name="title">
-                <xsl:for-each select="ead/frontmatter/titlepage/titleproper//text()">
+                <xsl:for-each select="frontmatter/titlepage/titleproper//text()">
                     <xsl:value-of select="current()" />
                 </xsl:for-each>
             </xsl:variable>
             <title><xsl:value-of select="normalize-space($title)"></xsl:value-of></title>
-            <xsl:variable name="count" select="count(ead/archdesc/scopecontent/p)" />
+            <xsl:variable name="count" select="count(archdesc/scopecontent/p)" />
             <xsl:if test="$count &gt; 0">
                 <scopecontent>
                     <p_count><xsl:value-of select="$count"></xsl:value-of></p_count>
-                    <xsl:for-each select="ead/archdesc/scopecontent/p[position() &lt;= number($scopecontent_p_max)]">
+                    <xsl:for-each select="archdesc/scopecontent/p[position() &lt;= number($scopecontent_p_max)]">
                         <xsl:variable name="p">
                             <xsl:for-each select="current()//text()">
                                 <xsl:value-of select="current()" />
