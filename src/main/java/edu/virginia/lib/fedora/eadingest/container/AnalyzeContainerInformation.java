@@ -106,7 +106,7 @@ public class AnalyzeContainerInformation {
     
     private void visitNodes(FedoraClient fc, String parentPid, String indent, boolean addLinks) throws Exception {
         for (String partPid : EADIngest.getOrderedParts(fc, parentPid, "info:fedora/fedora-system:def/relations-external#isPartOf", "http://fedora.lib.virginia.edu/relationship#follows")) {
-            Document eadFragment = parser.parse(FedoraClient.getDatastreamDissemination(partPid, o.eadComponentDSID()).execute(fc).getEntityInputStream());
+            Document eadFragment = parser.parse(FedoraClient.getDissemination(partPid, "uva-lib:descMetadataSDef", "getMetadataAsEADFragment").execute(fc).getEntityInputStream());
             String callNumber = ((String) xpath.evaluate("//container/@label", eadFragment, XPathConstants.STRING)).trim() + " " 
                         + ((String) xpath.evaluate("//container/text()", eadFragment, XPathConstants.STRING)).trim();
             if (!callNumber.trim().equals("")) {
