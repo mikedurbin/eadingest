@@ -540,6 +540,7 @@
                 Maps the unittitle to the following SOLR fields:
                 <doc:ul>
                     <doc:li mapping:type="solrField">main_title_display</doc:li>
+                    <doc:li mapping:type="solrField">title_display</doc:li>
                     <doc:li mapping:type="solrField">title_text</doc:li>
                     <doc:li mapping:type="full_title_text">full_title_text</doc:li>
                 </doc:ul>
@@ -553,6 +554,7 @@
             </xsl:for-each>
         </xsl:variable>
         <field name="main_title_display"><xsl:value-of select="normalize-space($title)" /></field>
+        <field name="title_display"><xsl:value-of select="normalize-space($title)" /></field>
         <field name="title_text"><xsl:value-of select="normalize-space($title)" /></field>
         <field name="full_title_text"><xsl:value-of select="normalize-space($title)" /></field>
     </xsl:template>
