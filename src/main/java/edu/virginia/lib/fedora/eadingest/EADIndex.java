@@ -35,7 +35,7 @@ public class EADIndex {
         
         try {
             // find all collections
-            List<String> collectionRootPids = EADIngest.getSubjects(fc, o.eadRootCModel(), EADIngest.HAS_MODEL_PREDICATE);
+            List<String> collectionRootPids = EADIngest.getSubjects(fc, o.eadRootCModel(), EADOntology.HAS_MODEL_PREDICATE);
             System.out.println(collectionRootPids.size() + " collections found");
             for (String cpid : collectionRootPids) {
                 if (filterPid == null || filterPid.equals(cpid)) {

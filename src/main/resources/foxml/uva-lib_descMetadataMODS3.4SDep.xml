@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<foxml:digitalObject VERSION="1.1" PID="uva-lib:descMetadataEADFragmentSDep"
+<foxml:digitalObject VERSION="1.1" PID="uva-lib:descMetadataMODS3.4SDep"
   xmlns:foxml="info:fedora/fedora-system:def/foxml#"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
@@ -14,7 +14,7 @@
           xmlns:dc="http://purl.org/dc/elements/1.1/"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
-          <dc:identifier>uva-lib:descMetadataEADFragmentSDep</dc:identifier>
+          <dc:identifier>uva-lib:descMetadataMODS3.4SDep</dc:identifier>
         </oai_dc:dc>
       </foxml:xmlContent>
     </foxml:datastreamVersion>
@@ -25,10 +25,10 @@
       <foxml:xmlContent>
         <rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#"
           xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-          <rdf:Description rdf:about="info:fedora/uva-lib:descMetadataEADFragmentSDep">
+          <rdf:Description rdf:about="info:fedora/uva-lib:descMetadataMODS3.4SDep">
             <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ServiceDeployment-3.0"/>
             <fedora-model:isDeploymentOf rdf:resource="info:fedora/uva-lib:descMetadataSDef"/>
-            <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:eadMetadataFragmentCModel"/>
+            <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:mods3.4CModel"/>
           </rdf:Description>
         </rdf:RDF>
       </foxml:xmlContent>
@@ -106,8 +106,7 @@
           <wsdl:binding name="binding" type="this:portType">
             <http:binding verb="GET"/>
             <wsdl:operation name="getMetadataAsMODS">
-              <http:operation
-                  location="http://local.fedora.server/saxon/SaxonServlet?source=(descMetadata)&amp;style=http://local.fedora.server/fedora/get/uva-lib:descMetadataEADFragmentSDep/XSLT&amp;pid=(pid)&amp;sourceUrl=(descMetadata)&amp;thisUrl=http://local.fedora.server/fedora/get/uva-lib:descMetadataEADFragmentSDep/XSLT&amp;clear-stylesheet-cache=no"/>
+              <http:operation location="(descMetadata)" />
               <wsdl:input>
                 <http:urlReplacement/>
               </wsdl:input>
@@ -116,7 +115,8 @@
               </wsdl:output>
             </wsdl:operation>
             <wsdl:operation name="getMetadataAsEADFragment">
-              <http:operation location="(descMetadata)" />
+              <http:operation
+                location="http://local.fedora.server/saxon/SaxonServlet?source=(descMetadata)&amp;style=http://local.fedora.server/fedora/get/uva-lib:descMetadataMODS3.4SDep/XSLT&amp;pid=(pid)&amp;sourceUrl=(descMetadata)&amp;thisUrl=http://local.fedora.server/fedora/get/uva-lib:descMetadataMODS3.4SDep/XSLT&amp;clear-stylesheet-cache=no"/>
               <wsdl:input>
                 <http:urlReplacement/>
               </wsdl:input>
@@ -144,7 +144,7 @@
   </foxml:datastream>
   <foxml:datastream ID="XSLT" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
     <foxml:datastreamVersion ID="XSLT.0" MIMETYPE="text/xml">
-        <foxml:contentLocation TYPE="URL" REF="https://raw.github.com/uvalib-dcs/uva_fedora_transformations/master/EAD2MODS3-4.xsl"/>
+      <foxml:contentLocation TYPE="URL" REF="https://raw.github.com/uvalib-dcs/uva_fedora_transformations/master/MODS34toEAD.xsl"/>
     </foxml:datastreamVersion>
   </foxml:datastream>
 </foxml:digitalObject>

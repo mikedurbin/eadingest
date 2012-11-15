@@ -79,7 +79,7 @@ public class RepositoryIntegrationTest {
         EADOntology o = new EADOntology(p);
         
         try {
-            List<String> collectionRootPids = EADIngest.getSubjects(fc, o.eadRootCModel(), EADIngest.HAS_MODEL_PREDICATE);
+            List<String> collectionRootPids = EADIngest.getSubjects(fc, o.eadRootCModel(), EADOntology.HAS_MODEL_PREDICATE);
             for (String cpid : collectionRootPids) {
                 validateComponentAndChildren(fc, cpid, "  ", o, errors);
                 List<String> marcPids = !o.isInverted(EADOntology.Relationship.HAS_MARC) 

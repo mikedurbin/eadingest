@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,10 @@ import edu.virginia.lib.fedora.eadingest.EADOntology;
  */
 public class SpecializedPidMapping implements PidMapping {
 
+    private String mdServiceName = "uva-lib:descMetadataSDef";
+    
+    private String mdServiceMethod = "getMetadataAsEADFragment";
+    
     private Map<String, String> hashToPidMap;
 
     private XPath xpath;
@@ -106,7 +111,7 @@ public class SpecializedPidMapping implements PidMapping {
             }
 
         }
-        mapComponentAndChildren(hashToPidMap, cpid, getKey(cpid, o.eadComponentDSID(), fc), o, fc);
+        mapComponentAndChildren(hashToPidMap, cpid, getKey(cpid, mdServiceName, mdServiceMethod, fc), o, fc);
     }
     
     /**
@@ -127,7 +132,7 @@ public class SpecializedPidMapping implements PidMapping {
             throw new RuntimeException("getOrderedParts does not support inverted relationships!");
         }
         for (String partPid : EADIngest.getOrderedParts(fc, pid, o.getRelationship(EADOntology.Relationship.IS_PART_OF), o.getRelationship(EADOntology.Relationship.FOLLOWS))) {
-            mapComponentAndChildren(map, partPid, getKey(partPid, o.eadComponentDSID(), fc), o, fc);
+            mapComponentAndChildren(map, partPid, getKey(partPid, mdServiceName, mdServiceMethod, fc), o, fc);
         }
         
     }
@@ -154,6 +159,16 @@ public class SpecializedPidMapping implements PidMapping {
     
 
     
+    private String getKey(String pid, String sdef, String service, FedoraClient fc) throws ParserConfigurationException, SAXException, IOException, FedoraClientException, XPathExpressionException, TransformerException {
+        try {
+            DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document doc = parser.parse(FedoraClient.getDissemination(pid, sdef, service).execute(fc).getEntityInputStream());
+            return getKey(doc.getDocumentElement());
+        } catch (Throwable t) {
+            return pid;
+        }
+    }
+
     private String getKey(String pid, String dsId, FedoraClient fc) throws ParserConfigurationException, SAXException, IOException, FedoraClientException, XPathExpressionException, TransformerException {
         try {
             DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -182,6 +197,10 @@ public class SpecializedPidMapping implements PidMapping {
                 }
             }
         }
+    }
+    
+    public Collection<String> getPids() {
+        return hashToPidMap.values();
     }
     
     

@@ -56,8 +56,6 @@ import edu.virginia.lib.fedora.eadingest.pidmapping.SpecializedPidMapping;
  * Test code to ingest XML content into a local fedora repository.
  */
 public class EADIngest {
-
-    public static final String HAS_MODEL_PREDICATE = "info:fedora/fedora-system:def/model#hasModel";
     
     public static void main(String[] args) throws Exception {
         System.out.println("EADIngest -- a utility to ingest EAD content as well as the supporting objects");
@@ -132,7 +130,9 @@ public class EADIngest {
         url = EADIngest.class.getClassLoader().getResource("ead/viu00003.xml");
         URL mappingUrl = EADIngest.class.getClassLoader().getResource("ead/viu00003-digitized-item-mapping.txt");
         if (url != null) {
-            eadIngests.add(new EADIngest(new File(url.toURI()), new String[] { "u2525293", "u4327007", "u4293731" }, catalogUrl, o, new RubyHashPageMapper(FileUtils.readFileToString(new File(mappingUrl.toURI()))), fc));
+            EADIngest church = new EADIngest(new File(url.toURI()), new String[] { "u2525293", "u4327007", "u4293731" }, catalogUrl, o, new RubyHashPageMapper(FileUtils.readFileToString(new File(mappingUrl.toURI()))), fc); 
+            church.setPidMapping(new SpecializedPidMapping(new File(ReplaceCollection.class.getClassLoader().getResource("ead/viu00003-pid-mapping.txt").toURI())));
+            eadIngests.add(church);
         }
         
         // Holsinger
@@ -331,8 +331,8 @@ public class EADIngest {
         FedoraClient.addDatastream(pid, "DC").content(getXMLDocument(new DCRecord(FedoraClient.getDatastreamDissemination(pid, "DC").execute(fc).getEntityInputStream()).addIdentifier(id).getDocument())).execute(fc);
         
         // add the content models
-        FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadRootCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
-        FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+        FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadRootCModel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
+        FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
         
         // create and add the marc record
         for (int i = 0; i < marcXmlDocs.length; i ++) {
@@ -356,7 +356,7 @@ public class EADIngest {
             }
             
             // add the content model
-            FedoraClient.addRelationship(marcPid).object("info:fedora/" + o.marcCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            FedoraClient.addRelationship(marcPid).object("info:fedora/" + o.marcCmodel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
             
             // pull the firehose records and create and add any containers
             addOrUpdateHoldingRecords(marcPid, marcIds[i]);
@@ -406,18 +406,18 @@ public class EADIngest {
             }
            
             // add the content models
-            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadItemCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadItemCModel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
             
             if (itemPid != null) {
                 // this is a placehoder
                 // add the relationship to the physical item objectand the corresponding content model
                 FedoraClient.addRelationship(pid).object("info:fedora/" + itemPid).predicate(o.getRelationship(EADOntology.Relationship.IS_PLACEHOLDER_FOR)).execute(fc);
-                FedoraClient.addRelationship(pid).object("info:fedora/" + o.metadataPlaceholderCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+                FedoraClient.addRelationship(pid).object("info:fedora/" + o.metadataPlaceholderCmodel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
             } else {
                 // this is a logical item only (there is no digitized representation of the physical item)
                 // add the ead fragment and the "metadata" content model
                 FedoraClient.addDatastream(pid, o.eadComponentDSID()).content(getXMLDocument(acDoc)).controlGroup("M").mimeType("text/xml").execute(fc);
-                FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+                FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
             }
             
             // add sequence relationship
@@ -435,8 +435,8 @@ public class EADIngest {
             FedoraClient.addDatastream(pid, o.eadComponentDSID()).content(getXMLDocument(acDoc)).controlGroup("M").mimeType("text/xml").execute(fc);
             
             // add the content models
-            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
-            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadComponentCModel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
+            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadComponentCModel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
             if (previousItemPid != null) {
                 if (!o.isInverted(EADOntology.Relationship.FOLLOWS)) {
                     // add the relationship from the follower to the followee
@@ -633,7 +633,7 @@ public class EADIngest {
             FedoraClient.addDatastream(pid, o.containerDSID()).content(getXMLDocument(containerDoc)).controlGroup("M").mimeType("text/xml").execute(fc);
             
             // add the content model
-            FedoraClient.addRelationship(pid).object("info:fedora/" + o.containerCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            FedoraClient.addRelationship(pid).object("info:fedora/" + o.containerCmodel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
         }
         
     }
@@ -692,7 +692,7 @@ public class EADIngest {
             FedoraClient.addDatastream(pid, o.eadItemDSID()).content(descMetadata).controlGroup("M").mimeType("text/xml").execute(fc);
 
             // add the content model
-            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(HAS_MODEL_PREDICATE).execute(fc);
+            FedoraClient.addRelationship(pid).object("info:fedora/" + o.eadFragmentCmodel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
             
             return pid;
         }

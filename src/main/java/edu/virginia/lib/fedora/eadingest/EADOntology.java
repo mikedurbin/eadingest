@@ -9,6 +9,8 @@ import java.util.Properties;
  */
 public class EADOntology {
 
+    public static final String HAS_MODEL_PREDICATE = "info:fedora/fedora-system:def/model#hasModel";
+    
     public enum Relationship {
         HAS_MODEL,
         IS_PART_OF,
@@ -102,6 +104,10 @@ public class EADOntology {
     
     public String multiapgeDSID() {
         return p.getProperty("multipage-dsId");
+    }
+    
+    public String getVisibilityPredicate() {
+        return p.getProperty("visibility-predicate");
     }
     
 }

@@ -85,8 +85,8 @@ public class ImportDigitizedItems {
         logicalItemPid = logicalItemPid != null 
                 ? FedoraClient.ingest(logicalItemPid).execute(dest).getPid() 
                 : FedoraClient.ingest().execute(dest).getPid();
-        FedoraClient.addRelationship(logicalItemPid).predicate(EADIngest.HAS_MODEL_PREDICATE).object("info:fedora/" + o.eadItemCModel()).execute(dest);
-        FedoraClient.addRelationship(logicalItemPid).predicate(EADIngest.HAS_MODEL_PREDICATE).object("info:fedora/" + o.metadataPlaceholderCmodel()).execute(dest);
+        FedoraClient.addRelationship(logicalItemPid).predicate(EADOntology.HAS_MODEL_PREDICATE).object("info:fedora/" + o.eadItemCModel()).execute(dest);
+        FedoraClient.addRelationship(logicalItemPid).predicate(EADOntology.HAS_MODEL_PREDICATE).object("info:fedora/" + o.metadataPlaceholderCmodel()).execute(dest);
         FedoraClient.addRelationship(logicalItemPid).predicate(o.getRelationship(EADOntology.Relationship.IS_PART_OF)).object("info:fedora/" + newObjectPid).execute(dest);
         FedoraClient.addRelationship(logicalItemPid).predicate(o.getRelationship(EADOntology.Relationship.IS_PLACEHOLDER_FOR)).object("info:fedora/" + subjectPid).execute(dest);
         System.out.println(logicalItemPid + " --> " + subjectPid);

@@ -105,7 +105,7 @@
             <http:binding verb="GET"/>
             <wsdl:operation name="getSummary">
               <http:operation
-                location="http://local.fedora.server/saxon/SaxonServlet?source=http://local.fedora.server/fedora/objects/(pid)/methods/uva-lib:descMetadataSDef/getMetadataAsEADFragment&amp;style=http://local.fedora.server/fedora/get/uva-lib:hierarchicalMetadataSDep/XSLT&amp;pid=(pid)&amp;scopecontent_p_max=1&amp;component_max=3&amp;clear-stylesheet-cache=yes"/>
+                location="http://local.fedora.server/saxon/SaxonServlet?source=http://local.fedora.server/fedora/objects/(pid)/methods/uva-lib:descMetadataSDef/getMetadataAsEADFragment&amp;style=http://local.fedora.server/fedora/get/uva-lib:hierarchicalMetadataSDep/XSLT&amp;pid=(pid)&amp;scopecontent_p_max=1&amp;component_max=3&amp;clear-stylesheet-cache=no"/>
               <wsdl:input>
                 <http:urlReplacement/>
               </wsdl:input>
@@ -115,7 +115,7 @@
             </wsdl:operation>
             <wsdl:operation name="getFullSummary">
               <http:operation
-                location="http://local.fedora.server/saxon/SaxonServlet?source=http://local.fedora.server/fedora/objects/(pid)/methods/uva-lib:descMetadataSDef/getMetadataAsEADFragment&amp;style=http://local.fedora.server/fedora/get/uva-lib:hierarchicalMetadataSDep/XSLT&amp;pid=(pid)&amp;scopecontent_p_max=99999999&amp;component_max=99999999&amp;clear-stylesheet-cache=yes"/>
+                location="http://local.fedora.server/saxon/SaxonServlet?source=http://local.fedora.server/fedora/objects/(pid)/methods/uva-lib:descMetadataSDef/getMetadataAsEADFragment&amp;style=http://local.fedora.server/fedora/get/uva-lib:hierarchicalMetadataSDep/XSLT&amp;pid=(pid)&amp;scopecontent_p_max=99999999&amp;component_max=99999999&amp;clear-stylesheet-cache=no"/>
               <wsdl:input>
                 <http:urlReplacement/>
               </wsdl:input>
@@ -453,7 +453,7 @@
         <xsl:variable name="lookupSubsequentChildrenUri">
             <xsl:text>http://</xsl:text><xsl:value-of select="$fedora-host" /><xsl:text>:8080/fedora/risearch?type=tuples&amp;lang=itql&amp;format=Sparql&amp;query=select%20%24next%20%24previous%20from%20%3C%23ri%3E%20where%20%24next%20%3Cinfo%3Afedora%2Ffedora-system%3Adef%2Frelations-external%23isPartOf%3E%20%3Cinfo%3Afedora%2F</xsl:text>
             <xsl:value-of select="$parentPid" />
-            <xsl:text>%3E%20and%20%24next%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationship%23follows%3E%20%24previous</xsl:text>
+            <xsl:text>%3E%20and%20%24next%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationships%23follows%3E%20%24previous</xsl:text>
         </xsl:variable>
         <xsl:if test="$debug">
             <xsl:message terminate="no">
@@ -473,7 +473,7 @@
         <xsl:variable name="lookupFirstChildUri">
             <xsl:text>http://</xsl:text><xsl:value-of select="$fedora-host" /><xsl:text>:8080/fedora/risearch?type=tuples&amp;lang=itql&amp;format=Sparql&amp;query=select%20%24first%20from%20%3C%23ri%3E%20where%20%24first%20%20%3Cinfo%3Afedora%2Ffedora-system%3Adef%2Frelations-external%23isPartOf%3E%20%3Cinfo%3Afedora%2F</xsl:text>
             <xsl:value-of select="$parentPid" />
-            <xsl:text>%3E%20minus%20%24first%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationship%23follows%3E%20%24other</xsl:text>
+            <xsl:text>%3E%20minus%20%24first%20%3Chttp%3A%2F%2Ffedora.lib.virginia.edu%2Frelationships%23follows%3E%20%24other</xsl:text>
         </xsl:variable>
         <xsl:if test="$debug">
             <xsl:message terminate="no">

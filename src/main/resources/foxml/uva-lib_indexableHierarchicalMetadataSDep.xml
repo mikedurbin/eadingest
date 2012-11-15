@@ -92,7 +92,7 @@
             <http:binding verb="GET"/>
             <wsdl:operation name="getIndexingMetadata">
               <http:operation
-                location="http://local.fedora.server/saxon/SaxonServlet?source=http://local.fedora.server/fedora/objects/(pid)/methods/uva-lib:descMetadataSDef/getMetadataAsEADFragment&amp;style=http://local.fedora.server/fedora/get/uva-lib:indexableHierarchicalMetadataSDep/XSLT&amp;pid=(pid)&amp;clear-stylesheet-cache=yes"/>
+                location="http://local.fedora.server/saxon/SaxonServlet?source=http://local.fedora.server/fedora/objects/(pid)/methods/uva-lib:descMetadataSDef/getMetadataAsEADFragment&amp;style=http://local.fedora.server/fedora/get/uva-lib:indexableHierarchicalMetadataSDep/XSLT&amp;pid=(pid)&amp;clear-stylesheet-cache=no"/>
               <wsdl:input>
                 <http:urlReplacement/>
               </wsdl:input>
@@ -134,7 +134,9 @@
     xmlns:doc="http://www.oxygenxml.com/ns/doc/xsl"
     xmlns:mapping="http://lib.virginia.edu/mapping"
     xmlns:apia="http://www.fedora.info/definitions/1/0/access/"
-    exclude-result-prefixes="xs s marc doc mapping apia"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:uva-rels="http://fedora.lib.virginia.edu/relationships#"
+    exclude-result-prefixes="xs s marc doc mapping apia rdf uva-rels"
     version="2.0">
 
     <!-- 
@@ -173,6 +175,7 @@
                     <doc:li mapping:type="solrField" mapping:sourceXPath="'Manuscripts &amp; Rare Materials'">format_facet</doc:li>
                     <doc:li mapping:type="solrField" mapping:sourceXPath="'Special Collections'">library_facet</doc:li>
                     <doc:li mapping:type="solrField" mapping:sourceXPath="'Special Collections'">location_facet</doc:li>
+                    <doc:li mapping:type="solrField" mapping:sourceXPath="'VISIBLE', 'HIDDEN' or 'UNDISCOVERABLE'">shadowed_location_facet</doc:li>
                 </doc:ul>
             </doc:p>
         </doc:desc>
@@ -198,6 +201,15 @@
                 <field name="date_received_facet">
                     <xsl:value-of select="concat(substring($createDate, 1, 4), substring($createDate, 6, 2), substring($createDate, 9, 2))" />
                 </field>
+                
+                <xsl:variable name="relsExt" select="document(concat('http://', $fedora-host, ':8080/fedora/objects/', $pid, '/datastreams/RELS-EXT/content'))" />
+                <xsl:variable name="visibility" select="$relsExt/rdf:RDF/rdf:Description/uva-rels:visibility" />
+                <xsl:if test="not($visibility)">
+                    <field name="shadowed_location_facet"><xsl:text>VISIBLE</xsl:text></field>
+                </xsl:if>
+                <xsl:if test="$visibility">
+                    <field name="shadowed_location_facet"><xsl:value-of select="$visibility" /></field>
+                </xsl:if>
 
                 <xsl:apply-templates select="//*" mode="primary" />
                 
@@ -561,16 +573,17 @@
     
     <doc:doc>
         <doc:desc>
-            <doc:p>
-                Stores the ead id attribute to the 
-                <doc:b mapping:type="solrField" mapping:sourceXPath="ead/@id">ead_id_text</doc:b> field.
-            </doc:p>
+            <doc:ul>
+                <doc:li mapping:type="solrField" mapping:sourceXPath="'ead/@id">ead_id_text</doc:li>
+                <doc:li mapping:type="solrField" mapping:sourceXPath="'collection">hierarchy_level_facet</doc:li>
+            </doc:ul>
         </doc:desc>
     </doc:doc>
     <xsl:template match="ead" mode="primary">
         <xsl:if test="@id">
             <field name="ead_id_text" boost="2.0"><xsl:value-of select="@id" /></field>
         </xsl:if>
+        <field name="hierarchy_level_facet">collection</field>
         <xsl:if test="$debug">
             <xsl:comment>Matched EAD</xsl:comment>
         </xsl:if>
@@ -616,18 +629,6 @@
         </xsl:if>
     </xsl:template>
     
-    <doc:doc>
-        <doc:desc>
-            <doc:ul>
-                <doc:li mapping:type="solrField" mapping:sourceXPath="'collection">hierarchy_level_facet</doc:li>
-            </doc:ul>
-        </doc:desc>
-    </doc:doc>
-    <xsl:template match="ead" mode="primary">
-        <field name="hierarchy_level_facet">collection</field>
-        <!--<field name="format_facet">Collection</field>-->
-    </xsl:template>   
-
     <xsl:template match="marc:record" mode="marc">
         <xsl:if test="$debug">
             <xsl:comment>Matched MARC record</xsl:comment>
