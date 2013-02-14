@@ -107,7 +107,7 @@
             <http:binding verb="GET"/>
             <wsdl:operation name="getMetadataAsMODS">
               <http:operation
-                  location="http://local.fedora.server/saxon/SaxonServlet?source=(descMetadata)&amp;style=http://local.fedora.server/fedora/get/uva-lib:descMetadataEADFragmentSDep/XSLT&amp;pid=(pid)&amp;sourceUrl=(descMetadata)&amp;thisUrl=http://local.fedora.server/fedora/get/uva-lib:descMetadataEADFragmentSDep/XSLT&amp;clear-stylesheet-cache=no"/>
+                  location="http://localhost:8080/saxon/SaxonServlet?source=(descMetadata)&amp;style=http://local.fedora.server/fedora/get/uva-lib:descMetadataEADFragmentSDep/XSLT&amp;pid=(pid)&amp;sourceUrl=(descMetadata)&amp;thisUrl=http://local.fedora.server/fedora/get/uva-lib:descMetadataEADFragmentSDep/XSLT&amp;clear-stylesheet-cache=no"/>
               <wsdl:input>
                 <http:urlReplacement/>
               </wsdl:input>

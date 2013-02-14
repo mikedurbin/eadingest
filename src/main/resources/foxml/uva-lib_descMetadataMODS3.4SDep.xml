@@ -116,7 +116,7 @@
             </wsdl:operation>
             <wsdl:operation name="getMetadataAsEADFragment">
               <http:operation
-                location="http://local.fedora.server/saxon/SaxonServlet?source=(descMetadata)&amp;style=http://local.fedora.server/fedora/get/uva-lib:descMetadataMODS3.4SDep/XSLT&amp;pid=(pid)&amp;sourceUrl=(descMetadata)&amp;thisUrl=http://local.fedora.server/fedora/get/uva-lib:descMetadataMODS3.4SDep/XSLT&amp;clear-stylesheet-cache=no"/>
+                location="http://localhost:8080/saxon/SaxonServlet?source=(descMetadata)&amp;style=http://local.fedora.server/fedora/get/uva-lib:descMetadataMODS3.4SDep/XSLT&amp;pid=(pid)&amp;sourceUrl=(descMetadata)&amp;thisUrl=http://local.fedora.server/fedora/get/uva-lib:descMetadataMODS3.4SDep/XSLT&amp;clear-stylesheet-cache=no"/>
               <wsdl:input>
                 <http:urlReplacement/>
               </wsdl:input>
@@ -144,7 +144,7 @@
   </foxml:datastream>
   <foxml:datastream ID="XSLT" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
     <foxml:datastreamVersion ID="XSLT.0" MIMETYPE="text/xml">
-      <foxml:contentLocation TYPE="URL" REF="https://raw.github.com/uvalib-dcs/uva_fedora_transformations/master/MODS34toEAD.xsl"/>
+      <foxml:contentLocation TYPE="URL" REF="https://raw.github.com/uvalib-dcs/uva_fedora_transformations/master/Hierarchical/MODS34toEAD.xsl"/>
     </foxml:datastreamVersion>
   </foxml:datastream>
 </foxml:digitalObject>

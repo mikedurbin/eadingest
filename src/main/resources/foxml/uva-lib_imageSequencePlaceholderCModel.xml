@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<foxml:digitalObject VERSION="1.1" PID="uva-lib:descMetadataPlaceholderCModel"
+<foxml:digitalObject VERSION="1.1" PID="uva-lib:imageSequencePlaceholderCModel"
   xmlns:foxml="info:fedora/fedora-system:def/foxml#"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
@@ -14,7 +14,7 @@
           xmlns:dc="http://purl.org/dc/elements/1.1/"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
-          <dc:identifier>uva-lib:descMetadataPlaceholderCModel</dc:identifier>
+          <dc:identifier>uva-lib:imageSequencePlaceholderCModel</dc:identifier>
         </oai_dc:dc>
       </foxml:xmlContent>
     </foxml:datastreamVersion>
@@ -25,9 +25,8 @@
       <foxml:xmlContent>
         <rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#"
           xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-          <rdf:Description rdf:about="info:fedora/uva-lib:descMetadataPlaceholderCModel">
+          <rdf:Description rdf:about="info:fedora/uva-lib:imageSequencePlaceholderCModel">
             <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ContentModel-3.0"/>
-            <fedora-model:hasService rdf:resource="info:fedora/uva-lib:descMetadataSDef"/>
           </rdf:Description>
         </rdf:RDF>
       </foxml:xmlContent>
@@ -50,15 +49,15 @@
           xmlns:owl="http://www.w3.org/2002/07/owl#">
           <owl:Class rdf:about="info:fedora/uva-lib:imageSequencePlaceholderCModel#class">
             <rdfs:subClassOf>
-              <!-- the object must point to an object with the metadata -->
+              <!-- the object must point to an object with the content -->
               <owl:Restriction>
-                <owl:onProperty rdf:resource="http://fedora.lib.virginia.edu/relationships#isMetadataPlaceholderFor"/>
+                <owl:onProperty rdf:resource="http://fedora.lib.virginia.edu/relationships#isContentPlaceholderFor"/>
                 <owl:cardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</owl:cardinality>
               </owl:Restriction>
             </rdfs:subClassOf>
           </owl:Class>
           <owl:Class rdf:about="info:fedora/fedora-system:ContentModel-3.0#datastreams/RELS-EXT/class"/>
-          <owl:ObjectProperty rdf:about="http://fedora.lib.virginia.edu/relationships#isMetadataPlaceholderFor"/>
+          <owl:ObjectProperty rdf:about="http://fedora.lib.virginia.edu/relationships#isContentPlaceholderFor"/>
         </rdf:RDF>
       </foxml:xmlContent>
     </foxml:datastreamVersion>

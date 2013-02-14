@@ -88,7 +88,7 @@
   <wsdl:binding name="binding" type="this:portType">
     <http:binding verb="GET"/>
     <wsdl:operation name="getMappingDocumentation">
-      <http:operation location="http://local.fedora.server/saxon/SaxonServlet?source=(XSLT)&amp;style=http://local.fedora.server/fedora/get/uva-lib:documentedMappingSDep/to-user-docs.xsl&amp;clear-stylesheet-cache=no"/>
+      <http:operation location="http://localhost:8080/saxon/SaxonServlet?source=(XSLT)&amp;style=http://local.fedora.server/fedora/get/uva-lib:documentedMappingSDep/to-user-docs.xsl&amp;clear-stylesheet-cache=no"/>
       <wsdl:input>
         <http:urlReplacement/>
       </wsdl:input>

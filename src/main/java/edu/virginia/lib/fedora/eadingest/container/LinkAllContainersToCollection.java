@@ -9,7 +9,6 @@ import com.yourmediashelf.fedora.client.FedoraCredentials;
 import edu.virginia.lib.fedora.eadingest.EADIndex;
 import edu.virginia.lib.fedora.eadingest.EADIngest;
 import edu.virginia.lib.fedora.eadingest.EADOntology;
-import edu.virginia.lib.fedora.eadingest.PostSolrDocument;
 
 public class LinkAllContainersToCollection {
 

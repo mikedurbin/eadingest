@@ -18,7 +18,7 @@ public class EADOntology {
         HAS_MARC,
         DEFINES_CONTAINER,
         IS_CONTAINED_WITHIN,
-        IS_PLACEHOLDER_FOR,
+        IS_METADATA_PLACEHOLDER_FOR,
         HAS_DIGITAL_REPRESENTATION,
         HAS_EXEMPLAR;
         
@@ -102,7 +102,7 @@ public class EADOntology {
         return p.getProperty("container-dsId");
     }
     
-    public String multiapgeDSID() {
+    public String multipageDSID() {
         return p.getProperty("multipage-dsId");
     }
     
@@ -110,4 +110,11 @@ public class EADOntology {
         return p.getProperty("visibility-predicate");
     }
     
+    public String getIndexableSDefPid() {
+        return p.getProperty("indexable-sdef");
+    }
+    
+    public String getIndexMethod() {
+        return p.getProperty("indexable-method");
+    }
 }

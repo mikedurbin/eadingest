@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ead id="test">
+   <eadheader>
+      <filedesc>
+         <titlestmt>
+            <titleproper>Guide to a Test Collection</titleproper>
+            <subtitle id="sort">Test Collection</subtitle>
+         </titlestmt>
+      </filedesc>
+   </eadheader>
+   <archdesc level="collection">
+      <did>
+         <head>Descriptive Summary</head>
+         <unittitle label="Title">Guide to a Test Collection<unitdate type="inclusive">2012-2013</unitdate></unittitle>
+         <langmaterial label="Language">
+            <language langcode="eng">English</language>
+         </langmaterial>
+      </did>
+      <scopecontent>
+         <head>Scope and Content</head>
+         <p>First Paragraph</p>
+         <p>Second Paragraph.  This one with two lines of text.</p>
+      </scopecontent>
+      <dsc type="in-depth">
+         <head>Contents List</head>
+         <c01 level="series" id="s01">
+            <did>
+               <unittitle>First Series</unittitle>
+            </did>
+            <c02 level="item" id="i01">
+               <did>
+                  <unittitle>First Item</unittitle>
+                  <unitdate>2012-December-18</unitdate>
+               </did>
+               <scopecontent>
+                  <p>One paragraph description of the first item.</p>
+               </scopecontent>
+            </c02>
+            <c02 level="item" id="i02">
+               <did>
+                  <unittitle>Second Item</unittitle>
+                  <unitdate>2012 December 19</unitdate>
+               </did>
+               <scopecontent>
+                  <p>One paragraph description of the second item.</p>
+               </scopecontent>
+            </c02>
+         </c01>
+      </dsc>
+   </archdesc>
+</ead>

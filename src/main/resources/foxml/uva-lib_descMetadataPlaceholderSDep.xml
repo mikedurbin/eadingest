@@ -100,7 +100,7 @@
             <http:binding verb="GET"/>
             <wsdl:operation name="getMetadataAsMODS">
               <http:operation
-                  location="http://local.fedora.server/saxon/SaxonServlet?source=(RELS-EXT)&amp;style=http://local.fedora.server/fedora/get/uva-lib:descMetadataPlaceholderSDep/XSLT&amp;service=uva-lib:descMetadataSDef/getMetadataAsMODS"/>
+                  location="http://localhost:8080/saxon/SaxonServlet?source=(RELS-EXT)&amp;style=http://local.fedora.server/fedora/get/uva-lib:descMetadataPlaceholderSDep/XSLT&amp;service=uva-lib:descMetadataSDef/getMetadataAsMODS"/>
               <wsdl:input>
                 <http:urlReplacement/>
               </wsdl:input>
@@ -110,7 +110,7 @@
             </wsdl:operation>
             <wsdl:operation name="getMetadataAsEADFragment">
               <http:operation
-                location="http://local.fedora.server/saxon/SaxonServlet?source=(RELS-EXT)&amp;style=http://local.fedora.server/fedora/get/uva-lib:descMetadataPlaceholderSDep/XSLT&amp;service=uva-lib:descMetadataSDef/getMetadataAsEADFragment"/>
+                location="http://localhost:8080/saxon/SaxonServlet?source=(RELS-EXT)&amp;style=http://local.fedora.server/fedora/get/uva-lib:descMetadataPlaceholderSDep/XSLT&amp;service=uva-lib:descMetadataSDef/getMetadataAsEADFragment"/>
               <wsdl:input>
                 <http:urlReplacement/>
               </wsdl:input>
@@ -150,7 +150,7 @@
             <xsl:variable name="fedora-host">localhost</xsl:variable>
             
             <xsl:template match="/">
-              <xsl:variable name="objectUri" select="rdf:RDF/rdf:Description/uva-lib:isPlaceholderFor/@rdf:resource" />
+              <xsl:variable name="objectUri" select="rdf:RDF/rdf:Description/uva-lib:isMetadataPlaceholderFor/@rdf:resource" />
               <xsl:choose>
                 <xsl:when test="$objectUri">
                   <xsl:variable name="pid" select="substring($objectUri, string-length('info:fedora/') + 1)" />

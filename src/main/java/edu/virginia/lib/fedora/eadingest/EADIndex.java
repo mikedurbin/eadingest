@@ -1,4 +1,5 @@
 package edu.virginia.lib.fedora.eadingest;
+import java.io.File;
 import java.util.List;
 import java.util.Properties;
 
@@ -18,6 +19,8 @@ public class EADIndex {
     public static String SERVICE_PID = "uva-lib:indexableSDef";
     public static String SERVICE_METHOD = "getIndexingMetadata";
     
+    public static int total = 0;
+    
     public static void main(String[] args) throws Exception {
         Properties p = new Properties();
         p.load(EADIndex.class.getClassLoader().getResourceAsStream("config/fedora-test.properties"));
@@ -28,10 +31,13 @@ public class EADIndex {
         EADOntology o = new EADOntology(p);
         
         Properties solrP = new Properties();
-        solrP.load(PostSolrDocument.class.getClassLoader().getResourceAsStream("config/solr.properties"));
+        solrP.load(EADIndex.class.getClassLoader().getResourceAsStream("config/solr.properties"));
         String updateUrl = solrP.getProperty("solr-update-url");
         boolean dryRun = solrP.containsKey("dry-run") && solrP.getProperty("dry-run").equals("true");
         String filterPid = solrP.getProperty("filter-pid");
+        File cacheDir = new File("solr-cache");
+        cacheDir.mkdir();
+        SolrTarget s = new SolrTarget(dryRun ? null : updateUrl, cacheDir);
         
         try {
             // find all collections
@@ -40,9 +46,7 @@ public class EADIndex {
             for (String cpid : collectionRootPids) {
                 if (filterPid == null || filterPid.equals(cpid)) {
                     System.out.println("  " + cpid);
-                    if (!dryRun) {
-                        PostSolrDocument.indexPid(fc, cpid, updateUrl, SERVICE_PID, SERVICE_METHOD);
-                    }
+                    s.indexPid(fc, cpid, SERVICE_PID, SERVICE_METHOD);
                     List<String> marcPids = !o.isInverted(EADOntology.Relationship.HAS_MARC) 
                             ? EADIngest.getObjects(fc, cpid, o.getRelationship(EADOntology.Relationship.HAS_MARC)) 
                             : EADIngest.getSubjects(fc, cpid, o.getInverseRelationship(EADOntology.Relationship.HAS_MARC));
@@ -56,16 +60,16 @@ public class EADIndex {
                         }
         
                     }
-                    printParts(fc, cpid, "  ", dryRun, updateUrl, o);
+                    printParts(fc, cpid, "  ", s, o);
                 } else {
                     System.out.println("  " + cpid + " (skipped)");
                 }
             }
             if (!dryRun) {
-                PostSolrDocument.commit(updateUrl);
+                s.commit();
             }
         } catch (Throwable t) {
-            PostSolrDocument.rollback(updateUrl);
+            s.rollback();
             if (t instanceof Exception) {
                 throw (Exception) t;
             } else if (t instanceof RuntimeException) {
@@ -76,16 +80,19 @@ public class EADIndex {
         } 
     }
     
-    public static void printParts(FedoraClient fc, String parentPid, String indent, boolean dryRun, String updateUrl, EADOntology o) throws Exception {
+    public static void printParts(FedoraClient fc, String parentPid, String indent, SolrTarget s, EADOntology o) throws Exception {
         if (o.isInverted(EADOntology.Relationship.IS_PART_OF) || o.isInverted(EADOntology.Relationship.FOLLOWS)) {
             throw new RuntimeException("getOrderedParts does not support inverted relationships!");
         }
         for (String partPid : EADIngest.getOrderedParts(fc, parentPid, o.getRelationship(EADOntology.Relationship.IS_PART_OF), o.getRelationship(EADOntology.Relationship.FOLLOWS))) {
             System.out.println(indent + "component --> " + partPid);
-            if (!dryRun) {
-                PostSolrDocument.indexPid(fc, partPid, updateUrl, SERVICE_PID, SERVICE_METHOD);
+            try {
+                s.indexPid(fc, partPid, SERVICE_PID, SERVICE_METHOD);
+                System.out.println((total ++) + " records posted.");
+            } catch (Exception ex) {
+                System.out.println("Unable to index " + partPid);
             }
-            printParts(fc, partPid, indent + "  ", dryRun, updateUrl, o);
+            printParts(fc, partPid, indent + "  ", s, o);
         }
     }
     

@@ -411,7 +411,7 @@ public class EADIngest {
             if (itemPid != null) {
                 // this is a placehoder
                 // add the relationship to the physical item objectand the corresponding content model
-                FedoraClient.addRelationship(pid).object("info:fedora/" + itemPid).predicate(o.getRelationship(EADOntology.Relationship.IS_PLACEHOLDER_FOR)).execute(fc);
+                FedoraClient.addRelationship(pid).object("info:fedora/" + itemPid).predicate(o.getRelationship(EADOntology.Relationship.IS_METADATA_PLACEHOLDER_FOR)).execute(fc);
                 FedoraClient.addRelationship(pid).object("info:fedora/" + o.metadataPlaceholderCmodel()).predicate(EADOntology.HAS_MODEL_PREDICATE).execute(fc);
             } else {
                 // this is a logical item only (there is no digitized representation of the physical item)
@@ -670,7 +670,12 @@ public class EADIngest {
      */
     public String findOrCreateMultipageObject(List<String> pages, String exemplarPid, String descMetadata) throws Exception {
         // look for the grouping object
-        List<String> groupingObjects = getSubjects(fc, pages.get(0), o.getRelationship(EADOntology.Relationship.HAS_DIGITAL_REPRESENTATION));
+        List<String> groupingObjects = null;
+        if (o.isInverted(EADOntology.Relationship.HAS_DIGITAL_REPRESENTATION)) {
+            groupingObjects = getObjects(fc, pages.get(0), o.getInverseRelationship(EADOntology.Relationship.HAS_DIGITAL_REPRESENTATION));
+        } else {
+            groupingObjects = getSubjects(fc, pages.get(0), o.getRelationship(EADOntology.Relationship.HAS_DIGITAL_REPRESENTATION));
+        }
         if (groupingObjects.size() == 1) {
             System.out.println("found " + groupingObjects.get(0));
             return groupingObjects.get(0);
@@ -679,10 +684,14 @@ public class EADIngest {
         } else {
             // create the grouping object
             String pid = FedoraClient.ingest().execute(fc).getPid();
-            System.out.println("created " + pid);
+            System.out.println("created " + pid + " (multipage)");
             // link to each page
             for (String pagePid : pages) {
-                FedoraClient.addRelationship(pid).object("info:fedora/" + pagePid).predicate(o.getRelationship(EADOntology.Relationship.HAS_DIGITAL_REPRESENTATION)).execute(fc);
+                if (o.isInverted(EADOntology.Relationship.HAS_DIGITAL_REPRESENTATION)) {
+                    FedoraClient.addRelationship(pagePid).object("info:fedora/" + pid).predicate(o.getInverseRelationship(EADOntology.Relationship.HAS_DIGITAL_REPRESENTATION)).execute(fc);
+                } else {
+                    FedoraClient.addRelationship(pid).object("info:fedora/" + pagePid).predicate(o.getRelationship(EADOntology.Relationship.HAS_DIGITAL_REPRESENTATION)).execute(fc);
+                }
                 if (pagePid.equals(exemplarPid)) {
                     FedoraClient.addRelationship(pid).object("info:fedora/" + pagePid).predicate(o.getRelationship(EADOntology.Relationship.HAS_EXEMPLAR)).execute(fc);
                 }
@@ -807,7 +816,7 @@ public class EADIngest {
         } else if (pids.size() == 1) {
             return pids.get(0);
         } else {
-            throw new RuntimeException("Multiple items are \"first\"!");
+            throw new RuntimeException("Multiple items are \"first\"! " + pids.get(0) + ", " + pids.get(1) + ")");
         }
     }
     
@@ -849,6 +858,20 @@ public class EADIngest {
         
         List<String> pids = new ArrayList<String>();
         String pid = getFirstPart(fc, parent, isPartOfPredicate, followsPredicate);
+        if (pid == null && !prevToNextMap.isEmpty()) {
+            // this is to handle some broke objects... in effect it treats
+            // objects whose "previous" is not a sibling as if they had
+            // no "previous"
+            for (String prev : prevToNextMap.keySet()) {
+                if (!prevToNextMap.values().contains(prev)) {
+                    if (pid == null) {
+                        pid = prev;
+                    } else {
+                        throw new RuntimeException("Two \"first\" children!");
+                    }
+                }
+            }
+        }
         while (pid != null) {
             pids.add(pid);
             String nextPid = prevToNextMap.get(pid);
@@ -857,7 +880,10 @@ public class EADIngest {
             
         }
         if (!prevToNextMap.isEmpty()) {
-            throw new RuntimeException("Broken relationship chain after \"" + pids.get(pids.size() - 1));
+            for (Map.Entry<String, String> entry : prevToNextMap.entrySet()) {
+                System.err.println(entry.getKey() + " --> " + entry.getValue());
+            }
+            throw new RuntimeException("Broken relationship chain");
         }
         return pids;
     }

@@ -1,6 +1,8 @@
 package edu.virginia.lib.fedora.eadingest;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -17,6 +19,7 @@ import com.yourmediashelf.fedora.generated.access.MethodType;
 import com.yourmediashelf.fedora.generated.access.ServiceDefinitionType;
 
 import edu.virginia.lib.fedora.eadingest.container.AnalyzeContainerInformation;
+import edu.virginia.lib.fedora.eadingest.multipage.UndigitizedPageMapper;
 
 /**
  * A suite of tests that ingests a great deal of content into 
@@ -60,7 +63,11 @@ public class RepositoryIntegrationTest {
         StringBuffer errors = new StringBuffer();
         try {
             for (String pid : pidsToPurge) {
-                validateNonFedoraMethods(pid, fc, errors);
+                try {
+                    validateNonFedoraMethods(pid, fc, errors);
+                } catch (Exception ex) {
+                    errors.append(pid + " resulted in an exception " + ex.getMessage() + "\n");
+                }
             }
         } finally {
             if (errors.length() > 0) {
@@ -69,8 +76,9 @@ public class RepositoryIntegrationTest {
             }
         }
     }
-    
-    @Test public synchronized void validateEADObjects() throws Exception {
+
+    @Test 
+    public synchronized void validateEADObjects() throws Exception {
         ingestTestObjects();
         StringBuffer errors = new StringBuffer();
         
@@ -95,7 +103,7 @@ public class RepositoryIntegrationTest {
                     }
                 }
             }
-            
+
         } finally {
             if (errors.length() > 0) {
                 System.err.println(errors);
@@ -154,12 +162,10 @@ public class RepositoryIntegrationTest {
         EADOntology o = new EADOntology(p);
         
         newlyIngestedEad = new ArrayList<EADIngest>();
-        for (EADIngest i : EADIngest.getRecognizedEADIngests(o, fc)) {
-            if (!i.exists()) {
-                i.buildFedoraObjects();
-                newlyIngestedEad.add(i);
-            }
-        }
+        URL url = EADIngest.class.getClassLoader().getResource("ead/test.xml");
+        EADIngest ingest = new EADIngest(new File(url.toURI()), new String[] {  }, null, o, new UndigitizedPageMapper(), fc);
+        ingest.buildFedoraObjects();
+        newlyIngestedEad.add(ingest);
     }
     
     @AfterClass
@@ -176,7 +182,8 @@ public class RepositoryIntegrationTest {
                     // the rest
                 }
             }
-        }
+            
+        } 
         
         for (EADIngest i : newlyIngestedEad) {
             try {

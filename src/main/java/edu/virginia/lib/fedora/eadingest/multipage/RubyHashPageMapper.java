@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,6 +57,10 @@ public class RubyHashPageMapper implements PageMapper {
      */
     public List<String> getDigitizedItemPagePids(String id) {
         return map.get(id);
+    }
+
+    public Set<String> getDigitizedItemIds() {
+        return map.keySet();
     }
 
     public String getExemplar(String id) {
