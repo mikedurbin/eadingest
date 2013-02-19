@@ -29,9 +29,9 @@
             <fedora-model:hasModel rdf:resource="info:fedora/fedora-system:ServiceDeployment-3.0"/>
             <fedora-model:hasModel rdf:resource="info:fedora/uva-lib:documentedMappingCModel"/>
             <fedora-model:isDeploymentOf rdf:resource="info:fedora/uva-lib:indexableSDef"/>
-            <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:eadCollectionCModel"/>
-            <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:eadComponentCModel"/>
-            <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:eadItemCModel"/>
+            <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:descMetadataPlaceholderCModel"/>
+            <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:eadMetadaaFragmentCModel"/>
+            <fedora-model:isContractorOf rdf:resource="info:fedora/uva-lib:mods3.4CModel"/>
           </rdf:Description>
         </rdf:RDF>
       </foxml:xmlContent>
